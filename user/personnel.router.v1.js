@@ -90,6 +90,28 @@ const apiVersion = 'v1';
             }
 
             const u = users[0];
+
+
+
+            /// check if email is available 
+            const dupEmailAcc = await userDAO.find(where = {
+                email: req.body.email,
+            });
+
+            if (dupEmailAcc.length > 0) {
+                let alreadyTaken = false;
+                dupEmailAcc.forEach(acc => {
+                    if (acc.id != u.id && acc.email == req.body.email) {
+                        alreadyTaken = true;
+                    }
+                });
+                if (alreadyTaken) {
+                    return req.api.status(400).errors([
+                        'Email already taken!'
+                    ]).send();
+                }
+            }
+
             const updatedUsers = await userDAO.update(
                 data= {
                     email: req.body.email,

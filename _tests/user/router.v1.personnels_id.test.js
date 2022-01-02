@@ -228,3 +228,55 @@ it('when with invalid email data, will fail', async() => {
     expect(response.status).toBe(400);
 
 });
+
+
+
+it('when with taken email data, will fail', async() => {
+
+    /// create personal
+    const personnelsData = [
+        {
+            email: 'person1.autoservice@gmail.com',
+            mobile: '639359372676',
+            password: 'P@ssW0rd',
+            firstName: 'Personnel',
+            lastName: 'One',
+            birthDay: new Date(Date.now()).toISOString(),
+            gender: 'Male',
+            role: User.ROLE_PERSONNEL,
+        },
+        {
+            email: 'person2.autoservice@gmail.com',
+            mobile: '639359372676',
+            password: 'P@ssW0rd',
+            firstName: 'Personnel',
+            lastName: 'Two',
+            birthDay: new Date(Date.now()).toISOString(),
+            gender: 'Female',
+            role: User.ROLE_PERSONNEL,
+        }
+    ];
+
+    const personnels = [];
+    for (const pd of personnelsData) {
+        const encryptedPass = await bcrypt.hash(pd.password, parseInt(process.env.BCRYPT_SALT));
+        const personnel = await userDAO.insert(data = {
+            ...pd,
+            password: encryptedPass
+        });
+        personnels.push(personnel);
+    }
+
+
+    const response = await request(app)
+        .post(`/${v}/personnels/${personnels[0].id}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send({
+            email: personnels[1].email
+        });
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(400);
+
+});
