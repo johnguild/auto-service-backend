@@ -55,36 +55,36 @@ afterAll( async () => {
 
 it('when with valid data, will succeed', async() => {
 
-    /// create personal
-    const personnelData = {
+    /// create customer
+    const customerData = {
         email: 'person1.autoservice@gmail.com',
         mobile: '639359372676',
         password: 'P@ssW0rd',
-        firstName: 'Personnel',
+        firstName: 'Customer',
         lastName: 'One',
         birthDay: new Date(Date.now()).toISOString(),
         gender: 'Male',
-        role: User.ROLE_PERSONNEL,
+        role: User.ROLE_CUSTOMER,
     }
-    const encryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
-        ...personnelData,
+    const encryptedPass = await bcrypt.hash(customerData.password, parseInt(process.env.BCRYPT_SALT));
+    const customer = await userDAO.insert(data = {
+        ...customerData,
         password: encryptedPass
     });
 
-    // console.log(personnel);
+    // console.log(customer);
 
     const newData = {
         email: 'person.autoservice@gmail.com',
         mobile: '63935937268',
-        firstName: 'Personnel Edited',
+        firstName: 'Customer Edited',
         lastName: 'Two',
         birthDate: new Date(Date.now()).toISOString(),
         gender: 'Female',
     }
 
     const response = await request(app)
-        .post(`/${v}/personnels/${personnel.id}`)
+        .post(`/${v}/customers/${customer.id}`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send(newData);
 
@@ -101,31 +101,72 @@ it('when with valid data, will succeed', async() => {
 
 });
 
-it('when with non existing personnel id data, will fail', async() => {
 
-    /// create personal
-    const personnelData = {
+it('when with disabling customer account, will succeed', async() => {
+
+    /// create customer
+    const customerData = {
         email: 'person1.autoservice@gmail.com',
         mobile: '639359372676',
         password: 'P@ssW0rd',
-        firstName: 'Personnel',
+        firstName: 'Customer',
         lastName: 'One',
         birthDay: new Date(Date.now()).toISOString(),
         gender: 'Male',
-        role: User.ROLE_PERSONNEL,
+        role: User.ROLE_CUSTOMER,
     }
-    const encryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
-        ...personnelData,
+    const encryptedPass = await bcrypt.hash(customerData.password, parseInt(process.env.BCRYPT_SALT));
+    const customer = await userDAO.insert(data = {
+        ...customerData,
         password: encryptedPass
     });
 
-    // console.log(personnel);
+    // console.log(customer);
+
+    const newData = {
+        email: 'person.autoservice@gmail.com',
+        active: false,
+    }
+
+    const response = await request(app)
+        .post(`/${v}/customers/${customer.id}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(newData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.email).toBe(newData.email);
+    expect(response.body.data.isDisabled).toBe(true);
+
+});
+
+it('when with non existing customer id data, will fail', async() => {
+
+    /// create personal
+    const customerData = {
+        email: 'person1.autoservice@gmail.com',
+        mobile: '639359372676',
+        password: 'P@ssW0rd',
+        firstName: 'Customer',
+        lastName: 'One',
+        birthDay: new Date(Date.now()).toISOString(),
+        gender: 'Male',
+        role: User.ROLE_CUSTOMER,
+    }
+    const encryptedPass = await bcrypt.hash(customerData.password, parseInt(process.env.BCRYPT_SALT));
+    const customer = await userDAO.insert(data = {
+        ...customerData,
+        password: encryptedPass
+    });
+
+    // console.log(customer);
 
     const newData = {
         email: 'personEdited.autoservice@gmail.com',
         mobile: '63935937268',
-        firstName: 'Personnel Edited',
+        firstName: 'Customer Edited',
         lastName: 'Two',
         birthDate: new Date(Date.now()).toISOString(),
         gender: 'Female',
@@ -133,7 +174,7 @@ it('when with non existing personnel id data, will fail', async() => {
 
     /// use manager id instead
     const response = await request(app)
-        .post(`/${v}/personnels/${managerId}`)
+        .post(`/${v}/customers/${managerId}`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send(newData);
 
@@ -147,35 +188,35 @@ it('when with non existing personnel id data, will fail', async() => {
 it('when with invalid uuid data, will fail', async() => {
 
     /// create personal
-    const personnelData = {
+    const customerData = {
         email: 'person1.autoservice@gmail.com',
         mobile: '639359372676',
         password: 'P@ssW0rd',
-        firstName: 'Personnel',
+        firstName: 'Customer',
         lastName: 'One',
         birthDay: new Date(Date.now()).toISOString(),
         gender: 'Male',
-        role: User.ROLE_PERSONNEL,
+        role: User.ROLE_CUSTOMER,
     }
-    const encryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
-        ...personnelData,
+    const encryptedPass = await bcrypt.hash(customerData.password, parseInt(process.env.BCRYPT_SALT));
+    const customer = await userDAO.insert(data = {
+        ...customerData,
         password: encryptedPass
     });
 
-    // console.log(personnel);
+    // console.log(customer);
 
     const newData = {
         email: 'person.autoservice@gmail.com',
         mobile: '63935937268',
-        firstName: 'Personnel Edited',
+        firstName: 'Customer Edited',
         lastName: 'Two',
         birthDate: new Date(Date.now()).toISOString(),
         gender: 'Female',
     }
 
     const response = await request(app)
-        .post(`/${v}/personnels/notauuid`)
+        .post(`/${v}/customers/notauuid`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send(newData);
 
@@ -190,36 +231,36 @@ it('when with invalid uuid data, will fail', async() => {
 it('when with invalid email data, will fail', async() => {
 
     /// create personal
-    const personnelData = {
+    const customerData = {
         email: 'person1.autoservice@gmail.com',
         mobile: '639359372676',
         password: 'P@ssW0rd',
-        firstName: 'Personnel',
+        firstName: 'Customer',
         lastName: 'One',
         birthDay: new Date(Date.now()).toISOString(),
         gender: 'Male',
-        role: User.ROLE_PERSONNEL,
+        role: User.ROLE_CUSTOMER,
     }
-    const encryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
-        ...personnelData,
+    const encryptedPass = await bcrypt.hash(customerData.password, parseInt(process.env.BCRYPT_SALT));
+    const customer = await userDAO.insert(data = {
+        ...customerData,
         password: encryptedPass
     });
 
-    // console.log(personnel);
+    // console.log(customer);
 
     /// invalid email
     const newData = {
         email: 'personEdited.autoservicegmail.com',
         mobile: '63935937268',
-        firstName: 'Personnel Edited',
+        firstName: 'Customer Edited',
         lastName: 'Two',
         birthDate: new Date(Date.now()).toISOString(),
         gender: 'Female',
     }
 
     const response = await request(app)
-        .post(`/${v}/personnels/${personnel.id}`)
+        .post(`/${v}/customers/${customer.id}`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send(newData);
 
@@ -234,45 +275,45 @@ it('when with invalid email data, will fail', async() => {
 it('when with taken email data, will fail', async() => {
 
     /// create personal
-    const personnelsData = [
+    const customersData = [
         {
             email: 'person1.autoservice@gmail.com',
             mobile: '639359372676',
             password: 'P@ssW0rd',
-            firstName: 'Personnel',
+            firstName: 'Customer',
             lastName: 'One',
             birthDay: new Date(Date.now()).toISOString(),
             gender: 'Male',
-            role: User.ROLE_PERSONNEL,
+            role: User.ROLE_CUSTOMER,
         },
         {
             email: 'person2.autoservice@gmail.com',
             mobile: '639359372676',
             password: 'P@ssW0rd',
-            firstName: 'Personnel',
+            firstName: 'Customer',
             lastName: 'Two',
             birthDay: new Date(Date.now()).toISOString(),
             gender: 'Female',
-            role: User.ROLE_PERSONNEL,
+            role: User.ROLE_CUSTOMER,
         }
     ];
 
-    const personnels = [];
-    for (const pd of personnelsData) {
+    const customers = [];
+    for (const pd of customersData) {
         const encryptedPass = await bcrypt.hash(pd.password, parseInt(process.env.BCRYPT_SALT));
-        const personnel = await userDAO.insert(data = {
+        const customer = await userDAO.insert(data = {
             ...pd,
             password: encryptedPass
         });
-        personnels.push(personnel);
+        customers.push(customer);
     }
 
 
     const response = await request(app)
-        .post(`/${v}/personnels/${personnels[0].id}`)
+        .post(`/${v}/customers/${customers[0].id}`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send({
-            email: personnels[1].email
+            email: customers[1].email
         });
 
     // console.dir(response.body, { depth: null });
