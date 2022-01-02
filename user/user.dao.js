@@ -137,6 +137,7 @@ const find = async(
         email,
         mobile,
         role,
+        isDisabled,
     },
     options = {
         limit: undefined,
