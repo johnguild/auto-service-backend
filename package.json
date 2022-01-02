@@ -1,0 +1,37 @@
+{
+  "name": "auto-service-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:prod": "env-cmd -f ./config/prod.env nodemon index.js",
+    "dev": "env-cmd -f ./config/app.env nodemon index.js",
+    "test": "env-cmd -f ./config/test.env jest --runInBand --detectOpenHandles",
+    "migrate": "env-cmd -f ./config/app.env node ./commands/migrate.js",
+    "migrate:check": "env-cmd -f ./config/app.env node ./commands/migrate.check.js",
+    "migrate:create": "env-cmd -f ./config/app.env node ./commands/migrate.create.js",
+    "migrate:rollback": "env-cmd -f ./config/app.env node ./commands/migrate.rollback.js",
+    "users:create": "env-cmd -f ./config/app.env node ./commands/users.create.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnguild/auto-service-backend.git"
+  },
+  "author": "\"John Robin Perez\"",
+  "license": "ISC",
+  "dependencies": {
+    "app-root-path": "^3.0.0",
+    "bcryptjs": "^2.4.3",
+    "env-cmd": "^10.1.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "pg": "^8.7.1",
+    "uuid-apikey": "^1.5.3"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "jest": "^27.2.4",
+    "nodemon": "^2.0.13",
+    "supertest": "^6.1.6"
+  }
+}
