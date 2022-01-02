@@ -34,7 +34,11 @@ const customerData = {
 }
 
 beforeAll( async () => {
-    await userMigration0.down().then(() => userMigration0.up());
+    await new Promise(resolve => setTimeout(() => resolve(), 100));
+    // clear db
+    await userMigration0.down();
+    // migrate tables
+    await userMigration0.up();
 });
 
 beforeEach( async () => {

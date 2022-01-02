@@ -11,7 +11,7 @@ const up = async() => {
             password VARCHAR, 
             first_name VARCHAR, 
             last_name VARCHAR, 
-            birth_day DATE, 
+            birth_day TIMESTAMPTZ, 
             gender VARCHAR, 
             is_disabled BOOL DEFAULT false, 
             reset_password_token VARCHAR, 

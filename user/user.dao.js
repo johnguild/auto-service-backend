@@ -68,6 +68,7 @@ const update = async(
         lastName, 
         gender, 
         birthDay,
+        isDisabled,
     }, 
     where = {
         id,
@@ -127,7 +128,7 @@ const update = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => User.fromDB(res.rows[0])) : [];
+        res.rows.map(u => User.fromDB(u)) : [];
 }
 
 
@@ -185,7 +186,7 @@ const find = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => User.fromDB(res.rows[0])) : [];
+        res.rows.map(u => User.fromDB(u)) : [];
 
 }
 

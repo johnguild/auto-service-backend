@@ -1,11 +1,13 @@
 const {getPool, closePool} = require('../../db/postgres');
 const pool =  getPool();
 
-beforeEach( async () => {
-    // await User.deleteMany();
-    // await Role.deleteMany();
 
-    // await new User(adminUser).save();
+beforeAll( async() => {
+    // await new Promise(resolve => setTimeout(() => resolve(), 100));
+});
+
+beforeEach( async () => {
+    // await new Promise(resolve => setTimeout(() => resolve(), 100));
 });
 
 afterAll( async () => {
@@ -19,6 +21,7 @@ describe('postgres', () => {
 
         let err = null;
         try {
+            await new Promise(resolve => setTimeout(() => resolve(), 100));
             const res = await pool.query(`SELECT EXISTS (
                             SELECT FROM information_schema.tables 
                             WHERE  table_schema = 'schema_name'

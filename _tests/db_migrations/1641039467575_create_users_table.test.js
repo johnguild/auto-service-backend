@@ -4,6 +4,14 @@ const pool = getPool();
 const User = require('../../user/user.model');
 
 
+beforeAll( async() => {
+    // await new Promise(resolve => setTimeout(() => resolve(), 100));
+});
+
+// beforeEach( async () => {
+//     await new Promise(resolve => setTimeout(() => resolve(), 100));
+// });
+
 afterAll( async () => {
     await closePool();
 });
@@ -12,6 +20,7 @@ describe('up', () => {
     it('when migrating, will succeed', async() => {
         let err = null;
         try {
+            await new Promise(resolve => setTimeout(() => resolve(), 100));
             await up();
         } catch (error) {
             err = error;
