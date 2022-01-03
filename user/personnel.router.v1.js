@@ -5,6 +5,7 @@ const api = require('../middlewares/api');
 const auth = require('../middlewares/auth');
 const personnelsValidation = require('./validations/personnels');
 const personnelsIdValidation = require('./validations/personnels_id');
+const getPersonnelsValidation = require('./validations/get_personnels');
 const validationCheck = require('../middlewares/validationCheck');
 const userDAO = require('./user.dao');
 const User = require('./user.model');
@@ -130,13 +131,57 @@ const apiVersion = 'v1';
                 .send(updatedUsers[0]);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
         }
 
 
+    }
+);
+
+
+
+/**
+ * Get Personnel Listing
+ */
+ router.get(`/${apiVersion}/personnels`, 
+    api('Get Personnel Listing'),
+    auth([User.ROLE_MANAGER]),
+    getPersonnelsValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            let limit = req.query.limit;
+            let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
+            
+            /// check if acc exists
+            const users = await userDAO.find(
+                where= {role: User.ROLE_PERSONNEL},
+                options= {limit: limit, skip: skip}
+            );
+
+            const total = await userDAO.findCount(
+                where= {role: User.ROLE_PERSONNEL}
+            );
+
+            // console.log(total);
+
+            return req.api.status(200)
+                .page(req.query.page)
+                .resultCount(users.length)
+                .total(total)
+                .send(users);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
     }
 );
 

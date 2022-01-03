@@ -165,6 +165,10 @@ const find = async(
         whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
     });
 
+    if (whereString.trim() != '') {
+        whereString = `WHERE ${whereString}`;
+    }
+
     let optionString = ' ';
     if (options != undefined) {
         if (options.limit) {
@@ -178,7 +182,7 @@ const find = async(
      
     const text = `
         SELECT * FROM ${User.tableName} 
-        WHERE ${whereString} 
+        ${whereString} 
         ${optionString};`;
 
     // console.log(text);
@@ -191,8 +195,59 @@ const find = async(
 }
 
 
+
+
+const findCount = async(
+    where = {
+        id,
+        email,
+        mobile,
+        role,
+        isDisabled,
+    }
+) => {
+
+    /// collect all variables need to build the query
+    const columns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(where[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let whereString = ' ';
+    columns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'AND ' : ''; 
+        whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
+    });
+
+    if (whereString.trim() != '') {
+        whereString = `WHERE ${whereString}`;
+    }
+
+    const text = `
+        SELECT COUNT(*) as total 
+        FROM ${User.tableName} 
+        ${whereString};`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    // console.log(res.rows);
+
+    return res.rows.length > 0 ? res.rows[0].total : 0;
+
+}
+
 module.exports = {
     insert,
     update,
-    find
+    find,
+    findCount
 }
