@@ -30,25 +30,19 @@ beforeAll( async() => {
     await userMigration0.down();
     // migrate tables
     await userMigration0.up();
-    // await loginTokenMigration0.down().then(() => loginTokenMigration0.up());
-    // await companyMigration0.down().then(() => companyMigration0.up());
 });
 
 beforeEach( async() => {
     await pool.query(`DELETE FROM ${User.tableName};`);
-    // await pool.query(`DELETE FROM ${LoginToken.tableName};`);
-    // await pool.query(`DELETE FROM ${Company.tableName};`);
 });
 
 afterAll( async() => {
     await userMigration0.down();
-    // await loginTokenMigration0.down();
-    // await companyMigration0.down();
     await closePool();
 });
 
 
-describe('create', () => {
+describe('insert', () => {
 
     it('when creating with valid and complete data, will succeed', async() => {
 
@@ -175,7 +169,7 @@ describe('update', () => {
 
 });
 
-describe('search', () => {
+describe('find', () => {
 
     it('when finding by email on records, will succeed', async() => {
         /// create users first

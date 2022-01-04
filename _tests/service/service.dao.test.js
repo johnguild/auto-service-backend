@@ -24,25 +24,19 @@ beforeAll( async() => {
     await serviceMigration0.down();
     // migrate tables
     await serviceMigration0.up();
-    // await loginTokenMigration0.down().then(() => loginTokenMigration0.up());
-    // await companyMigration0.down().then(() => companyMigration0.up());
 });
 
 beforeEach( async() => {
     await pool.query(`DELETE FROM ${Service.tableName};`);
-    // await pool.query(`DELETE FROM ${LoginToken.tableName};`);
-    // await pool.query(`DELETE FROM ${Company.tableName};`);
 });
 
 afterAll( async() => {
     await serviceMigration0.down();
-    // await loginTokenMigration0.down();
-    // await companyMigration0.down();
     await closePool();
 });
 
 
-describe('create', () => {
+describe('insert', () => {
 
     it('when creating with valid and complete data, will succeed', async() => {
 
@@ -166,7 +160,7 @@ describe('update', () => {
 
 });
 
-describe('search', () => {
+describe('find', () => {
 
     it('when finding by is_public on records, will succeed', async() => {
         /// create services first
