@@ -60,14 +60,15 @@ class User {
         this.birthDay = birthDay;
         this.gender = gender;
         this.isDisabled = isDisabled;
+        this.role = role;
         this.#password = password;
         this.#resetPasswordToken = resetPasswordToken;
-        this.#role = role;
+        // this.#role = role;
     }
     
     get password(){ return this.#password }
     get resetPasswordToken(){ return this.#resetPasswordToken }
-    get role(){ return this.#role }
+    // get role(){ return this.#role }
 
 }   
 
