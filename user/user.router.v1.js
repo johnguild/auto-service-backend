@@ -33,10 +33,18 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
+            // console.log(users);
             let userMatch = null;
             for (const user of users) {
+                // console.log(user.password);
                 const isMatch = await bcrypt.compare(req.body.password, user.password);
                 if (isMatch) userMatch = user;
+            }
+
+            if (!userMatch) {
+                return req.api.status(404).errors([
+                    'Credentials does not match our records'
+                ]).send();
             }
 
             if (userMatch.isDisabled) {

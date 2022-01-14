@@ -176,7 +176,7 @@ it('when getting data without page and limit, will succeed', async() => {
         .query(queryParams)
         .send();
 
-    // console.dir(response.body, { depth: null });
+    console.dir(response.body, { depth: null });
 
     expect(response.status).toBe(200);
     expect(response.body.data).not.toBeNull();
