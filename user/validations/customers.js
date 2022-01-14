@@ -6,8 +6,9 @@ const validate = () => {
             .isEmail().withMessage('Email is invalid')
             .isLength({ min: 8, max: 64 }).withMessage('Email is too short'), 
         body('password')
-            .matches("^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$", "i")
-                .withMessage("Password must be atleast 8 characters, have atleast 1 Uppercase, 1 Lowercase, 1 Digit, 1 Special Character"),
+            .isLength({ min: 8 }).withMessage('Password is too short')
+            .matches("^[\\w#?!@$%^&*-_]+$", "i")
+                .withMessage("Password must be atleast 8 characters, and can have the following Special Character #?!@$%^&*-_"),
         body('firstName')
             .isLength({ min: 1, max: 100 }).withMessage('First Name is too short')
             .matches("^[a-zA-Z0-9 ]+$", "i")
