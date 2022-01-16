@@ -151,4 +151,47 @@ const apiVersion = 'v1';
     }
 );
 
+
+
+/**
+ * Get Service Listing
+ */
+ router.get(`/${apiVersion}/public-services`, 
+    api('Get Service Listing'),
+    getServicesValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            let limit = req.query.limit;
+            let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
+            
+            /// check if acc exists
+            const services = await serviceDAO.find(
+                where= { isPublic: true },
+                options= {limit: limit, skip: skip}
+            );
+
+            const total = await serviceDAO.findCount(
+                where= {}
+            );
+
+            // console.log(total);
+
+            return req.api.status(200)
+                .page(req.query.page)
+                .resultCount(services.length)
+                .total(total)
+                .send(services);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+    }
+);
+
 module.exports = router
