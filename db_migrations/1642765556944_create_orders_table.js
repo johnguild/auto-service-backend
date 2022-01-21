@@ -10,6 +10,10 @@ const up = async() => {
             total NUMERIC DEFAULT 0.0,
             installments NUMERIC DEFAULT 0,
             completed BOOL DEFAULT false,
+            car_brand VARCHAR(300) NOT NULL,
+            car_model VARCHAR(300) NOT NULL,
+            car_plate VARCHAR(300) NOT NULL,
+            car_color VARCHAR(300) NOT NULL,
             PRIMARY KEY(id)
         );`);
 }

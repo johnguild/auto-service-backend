@@ -62,6 +62,7 @@ const customerData = {
 
 let managerUser, personnelUser, customerUser;
 
+const services = [];
 
 
 beforeAll( async() => {
@@ -104,6 +105,39 @@ beforeAll( async() => {
         ...customerData,
         password: customerEncryptedPass,
     });  
+
+
+
+    /// create services
+    for (const service of [
+        {
+            title: 'Repair Service',
+            description: 'Something here',
+            cover: 'base64string here',
+            price: 100.2,
+            discountedPrice: undefined,
+            isPublic: true,
+        },
+        {
+            title: 'Repair Service 2',
+            description: 'Something here',
+            cover: 'base64string here',
+            price: 99.2,
+            discountedPrice: undefined,
+            isPublic: true,
+        },
+        {
+            title: 'Repair Service 3',
+            description: 'Something here',
+            cover: 'base64string here',
+            price: 60.2,
+            discountedPrice: undefined,
+            isPublic: false,
+        },
+    ]) {
+        const serviceInstance = await serviceDAO.insert(service);
+        services.push(serviceInstance);
+    }
 });
 
 beforeEach( async() => {
@@ -132,7 +166,11 @@ describe('insertOrder', () => {
         const orderData = {
             customerId: customerUser.id,
             total: 1200,
-            installments: 3
+            installments: 3,
+            carBrand: 'Toyota',
+            carModel: '2020 Camry',
+            carColor: 'Silver',
+            carPlate: '1234-ABCD'
         }
 
         let order;
@@ -152,8 +190,6 @@ describe('insertOrder', () => {
 
 });
 
-
-
 describe('insertOrderServices', () => {
 
     it('when creating with valid and complete data, will succeed', async() => {
@@ -161,7 +197,11 @@ describe('insertOrderServices', () => {
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
             total: 1200,
-            installments: 3
+            installments: 3,
+            carBrand: 'Toyota',
+            carModel: '2020 Camry',
+            carColor: 'Silver',
+            carPlate: '1234-ABCD'
         });
 
         const service = await serviceDAO.insert({
@@ -197,8 +237,6 @@ describe('insertOrderServices', () => {
 
 });
 
-
-
 describe('insertOrderProducts', () => {
 
     it('when creating with valid and complete data, will succeed', async() => {
@@ -206,7 +244,11 @@ describe('insertOrderProducts', () => {
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
             total: 1200,
-            installments: 3
+            installments: 3,
+            carBrand: 'Toyota',
+            carModel: '2020 Camry',
+            carColor: 'Silver',
+            carPlate: '1234-ABCD'
         });
 
         const product = await productDAO.insert({
@@ -241,9 +283,6 @@ describe('insertOrderProducts', () => {
 
 });
 
-
-
-
 describe('insertOrderPayments', () => {
 
     it('when creating with valid and complete data, will succeed', async() => {
@@ -251,7 +290,11 @@ describe('insertOrderPayments', () => {
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
             total: 1200,
-            installments: 3
+            installments: 3,
+            carBrand: 'Toyota',
+            carModel: '2020 Camry',
+            carColor: 'Silver',
+            carPlate: '1234-ABCD'
         });
 
         const paymentData = {
@@ -276,4 +319,249 @@ describe('insertOrderPayments', () => {
         expect(orderPayment.dateTime.toISOString()).toBe(paymentData.dateTime);
     });
 
+});
+
+
+
+describe('find', () => {
+
+    it('when finding by customerId, will succeed', async() => {
+
+
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                installments: 3,
+                carBrand: 'Toyota',
+                carModel: '2020 Camry',
+                carColor: 'Silver',
+                carPlate: '1234-ABCD',
+                total: 6000,
+            },
+            {
+                customerId: customerUser.id,
+                installments: 5,
+                carBrand: 'Toyota',
+                carModel: '2020 Wigo',
+                carColor: 'Black',
+                carPlate: '1234-ABCD',
+                total: 6000,
+            },
+            {
+                customerId: personnelUser.id,
+                installments: 5,
+                carBrand: 'Honda',
+                carModel: '2020 Civi',
+                carColor: 'White',
+                carPlate: '1234-ABCD',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const data of orderData) {
+            const o = await orderDAO.insertOrder(data);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+        let orders;
+        let err = null;
+        try {
+            orders = await orderDAO.find( 
+                where= {
+                    customerId: customerUser.id,
+                },
+                opt= {
+                    limit: 20,
+                    skip: 0,
+                } 
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(orders, {depth: null});
+
+        expect(orders.length).toBe(2);
+
+    });
+
+    // it('when finding all with limit, will succeed', async() => {
+
+    //     /// create products first
+    //     const productData = [
+    //         {
+    //             name: 'Product 1',
+    //             sku: '123456',
+    //             description: 'Description 1',
+    //             stock: 12,
+    //             price: 100.5,
+    //         },
+    //         {
+    //             name: 'Product 2',
+    //             sku: '0003123123',
+    //             description: 'Description 2',
+    //             stock: 12,
+    //             price: 100.5,
+    //         },
+    //         {
+    //             name: 'Product 3',
+    //             sku: '000414444',
+    //             description: 'Description 3',
+    //             stock: 120,
+    //             price: 2000,
+    //         },
+    //     ]
+
+    //     for (const data of productData) {
+    //         const c = await productDAO.insert(data);
+    //         // console.log(c);
+    //     }
+
+      
+    //     let err = null;
+    //     try {
+    //         const searchRes = await productDAO.find( 
+    //             where= {},
+    //             options= {limit: 2}
+    //         );
+
+    //         expect(searchRes.length).toBe(2);
+
+    //         // console.log(searchRes);
+    //     } catch (error) {
+    //         err = error;
+    //     }
+    //     expect(err).toBeNull();
+
+    // });
+
+    // it('when finding all with skip, will succeed', async() => {
+
+    //     /// create products first
+    //     const productData = [
+    //         {
+    //             name: 'Product 1',
+    //             sku: '123456',
+    //             description: 'Description 1',
+    //             stock: 12,
+    //             price: 100.5,
+    //         },
+    //         {
+    //             name: 'Product 2',
+    //             sku: '0003123123',
+    //             description: 'Description 2',
+    //             stock: 12,
+    //             price: 100.5,
+    //         },
+    //         {
+    //             name: 'Product 3',
+    //             sku: '000414444',
+    //             description: 'Description 3',
+    //             stock: 120,
+    //             price: 2000,
+    //         },
+    //     ]
+
+    //     for (const data of productData) {
+    //         const c = await productDAO.insert(data);
+    //         // console.log(c);
+    //     }
+
+      
+    //     let err = null;
+    //     try {
+    //         const searchRes = await productDAO.find( 
+    //             where= {},
+    //             options= {skip: 2}
+    //         );
+
+    //         expect(searchRes.length).toBe(1);
+
+    //         // console.log(searchRes);
+    //     } catch (error) {
+    //         err = error;
+    //     }
+    //     expect(err).toBeNull();
+
+    // });
+
+    // it('when finding all with limit and skip, will succeed', async() => {
+
+    //     /// create products first
+    //     const productData = [
+    //         {
+    //             name: 'Product 1',
+    //             sku: '123456',
+    //             description: 'Description 1',
+    //             stock: 12,
+    //             price: 100.5,
+    //         },
+    //         {
+    //             name: 'Product 2',
+    //             sku: '0003123123',
+    //             description: 'Description 2',
+    //             stock: 12,
+    //             price: 100.5,
+    //         },
+    //         {
+    //             name: 'Product 3',
+    //             sku: '000414444',
+    //             description: 'Description 3',
+    //             stock: 120,
+    //             price: 2000,
+    //         },
+    //     ]
+
+    //     for (const data of productData) {
+    //         const c = await productDAO.insert(data);
+    //         // console.log(c);
+    //     }
+
+      
+    //     let err = null;
+    //     try {
+    //         const searchRes = await productDAO.find( 
+    //             where= {},
+    //             options= {limit: 1, skip: 1}
+    //         );
+
+    //         expect(searchRes.length).toBe(1);
+
+    //         // console.log(searchRes);
+    //     } catch (error) {
+    //         err = error;
+    //     }
+    //     expect(err).toBeNull();
+
+    // });
 });
