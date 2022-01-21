@@ -6,7 +6,7 @@ const up = async() => {
     return await pool
         .query(`CREATE TABLE ${OrderProducts.tableName} (
             order_id uuid NOT NULL,
-            service_id uuid NOT NULL,
+            product_id uuid NOT NULL,
             price NUMERIC DEFAULT 0.0
         );`);
 }
