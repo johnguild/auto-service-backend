@@ -11,7 +11,12 @@
     "migrate:check": "env-cmd -f ./config/app.env node ./commands/migrate.check.js",
     "migrate:create": "env-cmd -f ./config/app.env node ./commands/migrate.create.js",
     "migrate:rollback": "env-cmd -f ./config/app.env node ./commands/migrate.rollback.js",
-    "users:create": "env-cmd -f ./config/app.env node ./commands/users.create.js"
+    "users:create": "env-cmd -f ./config/app.env node ./commands/users.create.js",
+    "prod:migrate": "env-cmd -f ./config/prod.env node ./commands/migrate.js",
+    "prod:migrate:check": "env-cmd -f ./config/prod.env node ./commands/migrate.check.js",
+    "prod:migrate:create": "env-cmd -f ./config/prod.env node ./commands/migrate.create.js",
+    "prod:migrate:rollback": "env-cmd -f ./config/prod.env node ./commands/migrate.rollback.js",
+    "prod:users:create": "env-cmd -f ./config/prod.env node ./commands/users.create.js"
   },
   "repository": {
     "type": "git",

@@ -2,6 +2,8 @@ const { body, param } = require('express-validator');
 
 const validate = () => {
     return [
+        param("id")
+            .isUUID().withMessage('Invalid Id'),
         body('name')
             .isLength({ min: 1, max: 300 }).withMessage('Name must be a 1-300 characters only'), 
         body('sku')

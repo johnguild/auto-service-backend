@@ -141,7 +141,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/products`, 
     api('Get Product Listing'),
-    auth([User.ROLE_PERSONNEL]),
+    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
     getProductsValidation(),
     validationCheck(),
     async (req, res) => {
