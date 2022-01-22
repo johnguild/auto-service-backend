@@ -9,7 +9,7 @@ const OrderRouter = require('./order/order.router.v1');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({credentials: true, origin: true, exposedHeaders: '*'}));
 app.use(express.json());
 app.use(UserRouter);
 app.use(PersonnelRouter);
