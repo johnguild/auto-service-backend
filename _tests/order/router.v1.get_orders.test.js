@@ -272,7 +272,7 @@ it('when with valid data, will succeed', async() => {
         .set('Authorization', `Bearer ${managerToken}`)
         .send();
 
-    console.dir(response.body, { depth: null });
+    // console.dir(response.body, { depth: null });
 
     expect(response.status).toBe(200);
     expect(response.body.data).not.toBeNull();

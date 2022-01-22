@@ -1,4 +1,4 @@
-
+const User = require('../user/user.model');
 const OrderPayment = require("./orderPayments.model");
 const OrderProduct = require("./orderProducts.model");
 const OrderService = require("./orderServices.model");
@@ -20,6 +20,7 @@ class Order {
         all_services = [],
         all_products = [],
         all_payments = [],
+        customer,
     }) {
         const instance = new this({
             id,  
@@ -34,6 +35,7 @@ class Order {
             services: all_services.map((s) => OrderService.fromDB(s)),
             products: all_products.map((p) => OrderProduct.fromDB(p)),
             payments: all_payments.map((p) => OrderPayment.fromDB(p)),
+            customer: User.fromDB({ ...customer }),
         });
         return instance;
     }
@@ -52,6 +54,7 @@ class Order {
         services = [],
         products = [],
         payments = [],
+        customer,
     }) {
         this.id = id;
         this.customerId = customerId;
@@ -65,6 +68,7 @@ class Order {
         this.services = services;
         this.products = products;
         this.payments = payments;
+        this.customer = customer;
     }
     
 }   

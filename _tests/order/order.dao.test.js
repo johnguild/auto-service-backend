@@ -325,7 +325,7 @@ describe('insertOrderPayments', () => {
 
 describe('find', () => {
 
-    it('when finding by customerId, will succeed', async() => {
+    it.only('when finding by customerId, will succeed', async() => {
 
 
         /// create products first

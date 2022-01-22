@@ -2,6 +2,7 @@ const { getPool } = require('../db/postgres');
 const pool = getPool();
 const { toSnakeCase } = require('../utils/string');
 
+const User = require('../user/user.model');
 const Order = require('./order.model');
 const OrderServices = require('./orderServices.model');
 const OrderProducts = require('./orderProducts.model');
@@ -227,7 +228,11 @@ const find = async(
     }
      
     let text = `
-        SELECT o.*, 
+        SELECT o.*, (SELECT json_build_object('id', u.id, 'first_name', u.first_name, 'last_name', u.last_name, 
+                'email', u.email, 'mobile', u.mobile) as customer 
+                FROM ${User.tableName} as u 
+                WHERE u.id = o.customer_id 
+            ) as customer, 
             CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.srv) END as all_services,
             CASE WHEN count(pr) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT pr.prdct) END as all_products,
             CASE WHEN count(py) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT py.pymnt) END as all_payments 
