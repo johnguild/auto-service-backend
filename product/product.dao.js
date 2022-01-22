@@ -189,6 +189,66 @@ const find = async(
 }
 
 
+const findLike = async(
+    where = { 
+        name,
+        sku,
+        description,
+    },
+    options = {
+        limit: undefined,
+        skip: undefined,
+    }
+) => {
+
+    /// collect all variables need to build the query
+    const columns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(`%${where[attr]}%`);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let whereString = ' ';
+    columns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'OR ' : ''; 
+        whereString += `${prefix}${col} LIKE ${valueIndexes[ind]} `;
+    });
+
+    if (whereString.trim() != '') {
+        whereString = `WHERE ${whereString}`;
+    }
+
+    let optionString = ' ';
+    if (options != undefined) {
+        if (options.limit) {
+            optionString += `LIMIT ${options.limit} `;
+        }
+
+        if (options.skip) {
+            optionString += `OFFSET ${options.skip} `;
+        }
+    }
+     
+    const text = `
+        SELECT * FROM ${Product.tableName} 
+        ${whereString} 
+        ${optionString};`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => Product.fromDB(u)) : [];
+
+}
+
 const findCount = async(
     where = {
         id,    
@@ -241,5 +301,6 @@ module.exports = {
     insert,
     update,
     find,
+    findLike,
     findCount
 }

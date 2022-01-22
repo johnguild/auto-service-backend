@@ -229,16 +229,22 @@ const find = async(
     let text = `
         SELECT o.*, 
             CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.srv) END as all_services,
-            CASE WHEN count(py) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT py.pymnt) END as all_payments  
+            CASE WHEN count(pr) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT pr.prdct) END as all_products,
+            CASE WHEN count(py) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT py.pymnt) END as all_payments 
         FROM ${Order.tableName} as o 
         LEFT OUTER JOIN (
-            SELECT s.order_id, jsonb_build_object('order_id', s.order_id, 'service_id', 
-                s.service_id, 'price', s.price) as srv  
+            SELECT s.order_id, jsonb_build_object('service_id', s.service_id, 
+                'price', s.price) as srv  
             FROM ${OrderServices.tableName} as s 
         ) as ss ON ss.order_id = o.id 
         LEFT OUTER JOIN (
-            SELECT p.order_id, jsonb_build_object('amount', p.amount, 'date_time', 
-                p.date_time) as pymnt  
+            SELECT p.order_id, jsonb_build_object('price', p.price, 
+                'product_id', p.product_id) as prdct  
+            FROM ${OrderProducts.tableName} as p 
+        ) as pr ON pr.order_id = o.id 
+        LEFT OUTER JOIN (
+            SELECT p.order_id, jsonb_build_object('amount', p.amount, 
+                'date_time', p.date_time) as pymnt  
             FROM ${OrderPayments.tableName} as p 
         ) as py ON py.order_id = o.id 
         ${whereString} `;

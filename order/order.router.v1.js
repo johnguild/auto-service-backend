@@ -9,6 +9,7 @@ const getOrdersValidation = require('./validations/get_orders');
 const validationCheck = require('../middlewares/validationCheck');
 const orderDAO = require('./order.dao');
 const serviceDAO = require('../service/service.dao');
+const productDAO = require('../product/product.dao');
 const userDAO = require('../user/user.dao');
 const Order = require('./order.model');
 const User = require('../user/user.model');
@@ -28,7 +29,6 @@ const apiVersion = 'v1';
     validationCheck(),
     async (req, res) => {
         try {
-
 
             const users = await userDAO.find(
                 where = {
@@ -65,6 +65,27 @@ const apiVersion = 'v1';
             }
 
 
+            let hasINvalidProducts = false;
+            const currentProducts = [];
+            for (const productId of req.body.products) {
+                const products = await productDAO.find(
+                    where = {
+                        id: productId,
+                    }
+                );
+                if (products.length == 0) {
+                    hasINvalidProducts = true;
+                } else {
+                    currentProducts.push(products[0]);
+                }
+            }
+            if (hasINvalidProducts) {
+                return req.api.status(400).errors([
+                    'Invalid Products Selected'
+                ]).send();
+            }
+
+
             const order = await orderDAO.insertOrder(
                 data = {
                     customerId: users[0].id,
@@ -79,10 +100,20 @@ const apiVersion = 'v1';
 
             for (const service of currentServices) {
                 await orderDAO.insertOrderService(
-                        data = {
+                    data = {
                         orderId: order.id,
                         serviceId: service.id,
                         price: service.discountedPrice > 0 ? service.discountedPrice : service.price,
+                    }
+                );
+            }
+
+            for (const product of currentProducts) {
+                await orderDAO.insertOrderProduct(
+                    data = {
+                        orderId: order.id,
+                        productId: product.id,
+                        price: product.price,
                     }
                 );
             }
@@ -91,7 +122,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

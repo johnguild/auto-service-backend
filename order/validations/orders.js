@@ -8,6 +8,8 @@ const validate = () => {
             .isNumeric().withMessage('Installment must be a number'),
         body('services.*')
             .isUUID().withMessage('Services are invalid'), 
+        body('products.*')
+            .isUUID().withMessage('Products are invalid'), 
         body('carBrand')
             .isString().withMessage('Car Brand is Invalid')
             .isLength({ min: 1, max: 300 }).withMessage('Car Brand must be 1-300 characters only'),

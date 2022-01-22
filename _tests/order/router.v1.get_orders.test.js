@@ -69,6 +69,7 @@ let managerUser, personnelUser, customerUser;
 let managerToken, personnelToken, customerToken;
 
 const services = [];
+const products = [];
 
 
 beforeAll( async() => {
@@ -146,6 +147,35 @@ beforeAll( async() => {
         const serviceInstance = await serviceDAO.insert(service);
         services.push(serviceInstance);
     }
+
+
+        
+    for (const product of [
+        {
+            name: 'Product 1',
+            sku: '123456',
+            description: 'Description 1',
+            stock: 12,
+            price: 100.5,
+        },
+        {
+            name: 'Product 2',
+            sku: '0003123123',
+            description: 'Description 2',
+            stock: 12,
+            price: 100.5,
+        },
+        {
+            name: 'Product 3',
+            sku: '000414444',
+            description: 'Description 3',
+            stock: 120,
+            price: 2000,
+        },
+    ]) {
+        const productInstance = await productDAO.insert(product);
+        products.push(productInstance);
+    }
 });
 
 beforeEach( async() => {
@@ -206,14 +236,24 @@ it('when with valid data, will succeed', async() => {
                     serviceId: services[0].id,
                     price: services[1].price
                 }
-            )
+            );
 
             await orderDAO.insertOrderService(
                 {
                     orderId: o.id,
                     serviceId: services[0].id
                 }
+            );
+            
+            // add products
+            await orderDAO.insertOrderProduct(
+                {
+                    orderId: o.id,
+                    productId: products[0].id,
+                    price: products[0].price,
+                }
             )
+
         } else {
             await orderDAO.insertOrderService(
                 {
@@ -232,7 +272,7 @@ it('when with valid data, will succeed', async() => {
         .set('Authorization', `Bearer ${managerToken}`)
         .send();
 
-    // console.dir(response.body, { depth: null });
+    console.dir(response.body, { depth: null });
 
     expect(response.status).toBe(200);
     expect(response.body.data).not.toBeNull();

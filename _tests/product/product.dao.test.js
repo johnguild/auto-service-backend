@@ -364,4 +364,115 @@ describe('find', () => {
 });
 
 
+describe('findLike', () => {
+
+    it.only('when finding by sku on records, will succeed', async() => {
+        /// create products first
+        const productData = [
+            {
+                name: 'Product 1',
+                sku: '123456',
+                description: 'Description 1',
+                stock: 12,
+                price: 100.5,
+            },
+            {
+                name: 'Product 2',
+                sku: '0003123123',
+                description: 'Description 2',
+                stock: 12,
+                price: 100.5,
+            },
+            {
+                name: 'Product 3',
+                sku: '000767676',
+                description: 'Description 3',
+                stock: 12,
+                price: 200.5,
+            },
+        ]
+
+        for (const data of productData) {
+            const c = await productDAO.insert(data);
+            // console.log(c);
+        }
+
+
+        let err = null;
+        try {
+            const search1 = await productDAO.findLike( 
+                where= {
+                    name: '123',
+                    sku: '123',
+                    description: '123',
+                } 
+            );
+
+            expect(search1.length).toBe(2);
+
+            // console.log(searchRes[0]);
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+    });
+
+ 
+    it.only('when finding by sku on records, will succeed', async() => {
+        /// create products first
+        const productData = [
+            {
+                name: 'Product 1',
+                sku: '123456',
+                description: 'Description 1',
+                stock: 12,
+                price: 100.5,
+            },
+            {
+                name: 'Product 2',
+                sku: '0003123123',
+                description: 'Description 2',
+                stock: 12,
+                price: 100.5,
+            },
+            {
+                name: 'Product 3',
+                sku: '000767676',
+                description: 'Sample 3',
+                stock: 12,
+                price: 200.5,
+            },
+        ]
+
+        for (const data of productData) {
+            const c = await productDAO.insert(data);
+            // console.log(c);
+        }
+
+
+        let err = null;
+        try {
+            const search1 = await productDAO.findLike( 
+                where= {
+                    name: 'Sample',
+                    sku: 'Sample',
+                    description: 'Sample',
+                } 
+            );
+
+            expect(search1.length).toBe(1);
+
+            // console.log(searchRes[0]);
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+    });
+
+});
+
+
+
 

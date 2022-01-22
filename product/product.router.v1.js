@@ -6,6 +6,7 @@ const auth = require('../middlewares/auth');
 const productsValidation = require('./validations/products');
 const productsIdValidation = require('./validations/products_id');
 const getProductsValidation = require('./validations/get_products');
+const getSearchProductsValidation = require('./validations/get_search_products');
 const validationCheck = require('../middlewares/validationCheck');
 const productDAO = require('./product.dao');
 const Product = require('./product.model');
@@ -167,6 +168,46 @@ const apiVersion = 'v1';
                 .page(req.query.page)
                 .resultCount(products.length)
                 .total(total)
+                .send(products);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+    }
+);
+
+
+/**
+ * Get Product Search
+ */
+ router.get(`/${apiVersion}/products-search`, 
+    api('Get Product Search'),
+    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    getSearchProductsValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            let limit = req.query.limit;
+            let keyword = req.query.keyword;
+            
+            /// check if acc exists
+            const products = await productDAO.findLike(
+                where= {
+                    name: keyword,
+                    sku: keyword,
+                    description: keyword,
+                },
+                options= {limit: limit, skip: 0}
+            );
+
+            // console.log(total);
+
+            return req.api.status(200)
                 .send(products);
 
         } catch (error) {

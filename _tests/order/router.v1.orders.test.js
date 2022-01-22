@@ -69,6 +69,7 @@ let managerUser, personnelUser, customerUser;
 let managerToken, personnelToken, customerToken;
 
 const services = [];
+const products = [];
 
 
 beforeAll( async() => {
@@ -146,6 +147,33 @@ beforeAll( async() => {
         const serviceInstance = await serviceDAO.insert(service);
         services.push(serviceInstance);
     }
+    
+    for (const product of [
+        {
+            name: 'Product 1',
+            sku: '123456',
+            description: 'Description 1',
+            stock: 12,
+            price: 100.5,
+        },
+        {
+            name: 'Product 2',
+            sku: '0003123123',
+            description: 'Description 2',
+            stock: 12,
+            price: 100.5,
+        },
+        {
+            name: 'Product 3',
+            sku: '000414444',
+            description: 'Description 3',
+            stock: 120,
+            price: 2000,
+        },
+    ]) {
+        const productInstance = await productDAO.insert(product);
+        products.push(productInstance);
+    }
 });
 
 beforeEach( async() => {
@@ -177,6 +205,10 @@ it('when with valid data, will succeed', async() => {
         services: [
             services[0].id,
             services[1].id,
+        ],
+        products: [
+            products[0].id,
+            products[1].id,
         ],
         carBrand: 'Toyota',
         carModel: '2020 Camry',
