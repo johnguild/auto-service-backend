@@ -217,7 +217,7 @@ const findLike = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'OR ' : ''; 
-        whereString += `${prefix}${col} LIKE ${valueIndexes[ind]} `;
+        whereString += `${prefix}${col} ILIKE ${valueIndexes[ind]} `;
     });
 
     if (whereString.trim() != '') {
