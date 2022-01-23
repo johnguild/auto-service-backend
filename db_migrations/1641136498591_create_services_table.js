@@ -12,6 +12,7 @@ const up = async() => {
             cover VARCHAR, 
             price NUMERIC DEFAULT 0.0, 
             discounted_price NUMERIC, 
+            products uuid[] DEFAULT '{}', 
             PRIMARY KEY(id)
         );`);
 }

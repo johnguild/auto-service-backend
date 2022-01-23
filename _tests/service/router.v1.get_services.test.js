@@ -12,6 +12,10 @@ const serviceMigration0 = require('../../db_migrations/1641136498591_create_serv
 const serviceDAO = require('../../service/service.dao');
 const Service = require('../../service/service.model');
 
+const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const productDAO = require('../../product/product.dao');
+const Product = require('../../product/product.model');
+
 const { app } = require('../../app');
 const v = 'v1';
 
@@ -34,9 +38,11 @@ beforeAll( async () => {
     // clear db
     await userMigration0.down();
     await serviceMigration0.down();
+    await productMigration0.down();
     // migrate tables
     await userMigration0.up();
     await serviceMigration0.up();
+    await productMigration0.up();
 
 
     const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
@@ -49,18 +55,39 @@ beforeAll( async () => {
 });
 
 beforeEach( async () => {
-    await pool.query(`DELETE FROM ${Service.tableName};`);
+    await pool.query(`
+        DELETE FROM ${Product.tableName};
+        DELETE FROM ${Service.tableName};
+    `);
 
 });
 
 afterAll( async () => {
     await userMigration0.down();
     await serviceMigration0.down();
+    await productMigration0.down();
     await closePool();
 });
 
 
 it('when getting data without page, will succeed', async() => {
+
+
+    const product1 = await productDAO.insert({
+        name: 'test prod',
+        sku: '00001',
+        description: 'desc',
+        stock: 0,
+        price: 120,
+    });
+
+    const product2 = await productDAO.insert({
+        name: 'test prod 2',
+        sku: '00002',
+        description: 'desc',
+        stock: 0,
+        price: 350,
+    });
 
     const serviceData = [
         {
@@ -78,6 +105,7 @@ it('when getting data without page, will succeed', async() => {
             price: 300.2,
             discountedPrice: undefined,
             isPublic: true,
+            products: [],
         },
         {
             title: 'Repair Service 3',
@@ -86,6 +114,9 @@ it('when getting data without page, will succeed', async() => {
             price: 200.2,
             discountedPrice: undefined,
             isPublic: true,
+            products: [
+                product1.id,
+            ],
         },
         {
             title: 'Repair Service 4',
@@ -94,6 +125,10 @@ it('when getting data without page, will succeed', async() => {
             price: 600.2,
             discountedPrice: undefined,
             isPublic: true,
+            products: [
+                product1.id,
+                product2.id,
+            ],
         },
         {
             title: 'Repair Service 5',

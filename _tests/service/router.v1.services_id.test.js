@@ -12,6 +12,10 @@ const serviceMigration0 = require('../../db_migrations/1641136498591_create_serv
 const serviceDAO = require('../../service/service.dao');
 const Service = require('../../service/service.model');
 
+const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const productDAO = require('../../product/product.dao');
+const Product = require('../../product/product.model');
+
 const { app } = require('../../app');
 const v = 'v1';
 
@@ -35,9 +39,11 @@ beforeAll( async () => {
     // clear db
     await userMigration0.down();
     await serviceMigration0.down();
+    await productMigration0.down();
     // migrate tables
     await userMigration0.up();
     await serviceMigration0.up();
+    await productMigration0.up();
 
 
     const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
@@ -51,18 +57,39 @@ beforeAll( async () => {
 });
 
 beforeEach( async () => {
-    await pool.query(`DELETE FROM ${Service.tableName};`);
+    await pool.query(`
+        DELETE FROM ${Product.tableName};
+        DELETE FROM ${Service.tableName};
+    `);
 
 });
 
 afterAll( async () => {
     await userMigration0.down();
     await serviceMigration0.down();
+    await productMigration0.down();
     await closePool();
 });
 
 
-it('when with valid data, will succeed', async() => {
+it('when with valid data with products, will succeed', async() => {
+
+    const product1 = await productDAO.insert({
+        name: 'test prod',
+        sku: '00001',
+        description: 'desc',
+        stock: 0,
+        price: 120,
+    });
+
+
+    const product2 = await productDAO.insert({
+        name: 'test prod 2',
+        sku: '00002',
+        description: 'desc',
+        stock: 0,
+        price: 350,
+    });
 
     /// create service
     const serviceData = {
@@ -72,6 +99,10 @@ it('when with valid data, will succeed', async() => {
         price: 100.2,
         discountedPrice: undefined,
         isPublic: true,
+        products: [
+            product1.id,
+            product2.id,
+        ]
     }
     const service = await serviceDAO.insert(serviceData);
 
@@ -84,6 +115,9 @@ it('when with valid data, will succeed', async() => {
         price: 300.2,
         discountedPrice: 100.2,
         isPublic: false,
+        products: [
+            product1.id,
+        ]
     }
 
     const response = await request(app)
@@ -101,6 +135,7 @@ it('when with valid data, will succeed', async() => {
     expect(parseFloat(response.body.data.price)).toBe(newData.price);
     expect(parseFloat(response.body.data.discountedPrice)).toBe(newData.discountedPrice);
     expect(response.body.data.isPublic).toBe(newData.isPublic);
+    expect(response.body.data.products.length).toBe(1);
 
 });
 
@@ -113,6 +148,7 @@ it('when with non existing service id data, will fail', async() => {
         price: 300.2,
         discountedPrice: 100.2,
         isPublic: false,
+        products: [],
     }
 
     /// use manager id instead

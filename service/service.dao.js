@@ -3,6 +3,7 @@ const pool = getPool();
 
 const { toSnakeCase } = require('../utils/string');
 const Service = require('./service.model');
+const Product = require('../product/product.model');
 
 
 
@@ -20,6 +21,7 @@ const insert = async(
         discountedPrice,
         cover, 
         isPublic,
+        products,
     }
 ) => {
 
@@ -65,6 +67,7 @@ const update = async(
         discountedPrice,
         cover, 
         isPublic,
+        products,
     }, 
     where = {
         id,
@@ -157,7 +160,7 @@ const find = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'AND ' : ''; 
-        whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
+        whereString += `s.${prefix}${col} = ${valueIndexes[ind]} `;
     });
 
     if (whereString.trim() != '') {
@@ -176,13 +179,24 @@ const find = async(
     }
      
     const text = `
-        SELECT * FROM ${Service.tableName} 
+        SELECT s.*, 
+            CASE WHEN count(pr) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT pr.prdct) END as all_products 
+        FROM ${Service.tableName} as s
+        LEFT OUTER JOIN (
+            SELECT p.id, jsonb_build_object('id', p.id, 'name', p.name, 'sku', p.sku, 
+                'description', p.description, 'price', p.price
+                ) as prdct  
+            FROM ${Product.tableName} as p 
+        ) as pr ON pr.id = any(s.products)  
         ${whereString} 
+        GROUP BY s.id
         ${optionString};`;
 
     // console.log(text);
     // console.log(values);
     const res = await pool.query({ text, values });
+
+    // console.dir(res.rows, {depth: null});
 
     return res.rows.length > 0 ? 
         res.rows.map(u => Service.fromDB(u)) : [];

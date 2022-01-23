@@ -4,9 +4,13 @@ const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
 
 const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
+const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
 
 const Service = require('../../service/service.model');
 const serviceDAO = require('../../service/service.dao');
+
+const Product = require('../../product/product.model');
+const productDAO = require('../../product/product.dao');
 
 const service1Data = {
     title: 'Repair Service',
@@ -22,27 +26,44 @@ beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
     await serviceMigration0.down();
+    await productMigration0.down();
     // migrate tables
     await serviceMigration0.up();
+    await productMigration0.up();
 });
 
 beforeEach( async() => {
-    await pool.query(`DELETE FROM ${Service.tableName};`);
+    await pool.query(`
+        DELETE FROM ${Service.tableName};
+        DELETE FROM ${Product.tableName};
+    `);
 });
 
 afterAll( async() => {
     await serviceMigration0.down();
+    await productMigration0.down();
     await closePool();
 });
 
 
 describe('insert', () => {
 
-    it('when creating with valid and complete data, will succeed', async() => {
+    it('when creating with valid and without products, will succeed', async() => {
+
+        const serviceData = {
+            title: 'Repair Service',
+            description: 'Something here',
+            cover: 'base64string here',
+            price: 100.2,
+            discountedPrice: undefined,
+            isPublic: true,
+        }
 
         let err = null;
         try {
-            await serviceDAO.insert(service1Data);
+            const service = await serviceDAO.insert(serviceData);
+
+            // console.dir(service, {depth: null});
 
         } catch (error) {
             err = error;
@@ -59,6 +80,52 @@ describe('insert', () => {
         expect(res.rows[0].discountedPrice).toBe(undefined);
         expect(res.rows[0].is_public).toBe(service1Data.isPublic);
     });
+
+    it('when creating with valid and products, will succeed', async() => {
+
+        // insert products first
+        const product1 = await productDAO.insert({
+            name: 'test prod',
+            sku: '00001',
+            description: 'desc',
+            stock: 0,
+            price: 120,
+        });
+
+        const serviceData = {
+            title: 'Repair Service',
+            description: 'Something here',
+            cover: 'base64string here',
+            price: 100.2,
+            discountedPrice: undefined,
+            isPublic: true,
+            products: [
+                product1.id,
+            ]
+        }
+
+        let err = null;
+        try {
+            const service = await serviceDAO.insert(serviceData);
+
+            // console.dir(service, {depth: null});
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // assert service saved
+        const res = await pool.query(`SELECT * FROM ${Service.tableName};`);
+        expect(res.rows.length).toBe(1);
+        expect(res.rows[0].title).toBe(service1Data.title);
+        expect(res.rows[0].description).toBe(service1Data.description);
+        expect(res.rows[0].cover).toBe(service1Data.cover);
+        expect(parseFloat(res.rows[0].price)).toBe(service1Data.price);
+        expect(res.rows[0].discountedPrice).toBe(undefined);
+        expect(res.rows[0].is_public).toBe(service1Data.isPublic);
+    });
+
 
     it('when creating with valid but without price, will succeed', async() => {
 
@@ -212,6 +279,99 @@ describe('find', () => {
             );
 
             expect(search2.length).toBe(2);
+            // console.log(searchRes[0]);
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+    });
+
+    it('when finding by is_public with products, will succeed', async() => {
+
+        const product1 = await productDAO.insert({
+            name: 'test prod',
+            sku: '00001',
+            description: 'desc',
+            stock: 0,
+            price: 120,
+        });
+
+
+        const product2 = await productDAO.insert({
+            name: 'test prod 2',
+            sku: '00002',
+            description: 'desc',
+            stock: 0,
+            price: 350,
+        });
+
+
+        /// create services first
+        const serviceData = [
+            {
+                title: 'Repair Service',
+                description: 'Something here',
+                cover: 'base64string here',
+                price: 100.2,
+                discountedPrice: undefined,
+                isPublic: true,
+            },
+            {
+                title: 'Repair Service 2',
+                description: 'Something here',
+                cover: 'base64string here',
+                price: 99.2,
+                discountedPrice: undefined,
+                isPublic: true,
+                products: []
+            },
+            {
+                title: 'Repair Service 3',
+                description: 'Something here',
+                cover: 'base64string here',
+                price: 60.2,
+                discountedPrice: undefined,
+                isPublic: true,
+                products: [
+                    product1.id,
+                ]
+            },
+            {
+                title: 'Repair Service 4',
+                description: 'Something here',
+                cover: 'base64string here',
+                price: 60.2,
+                discountedPrice: undefined,
+                isPublic: true,
+                products: [
+                    product1.id,
+                    product2.id,
+                ]
+            },
+        ]
+
+        for (const data of serviceData) {
+            const c = await serviceDAO.insert(data);
+            // console.log(c);
+        }
+
+
+        let err = null;
+        try {
+            const search1 = await serviceDAO.find( 
+                where= {isPublic: true } 
+            );
+
+            expect(search1.length).toBe(4);
+
+            // console.dir(search1, {depth: null});
+
+            const search2 = await serviceDAO.find( 
+                where= {isPublic: false } 
+            );
+
+            expect(search2.length).toBe(0);
             // console.log(searchRes[0]);
         } catch (error) {
             err = error;

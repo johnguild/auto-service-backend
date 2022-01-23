@@ -20,6 +20,10 @@ const validate = () => {
         body('isPublic')
             .optional()
             .isBoolean().withMessage("isPublic must be a boolean"),
+        body('products')
+            .isArray().withMessage('Products must be an array of uuid'), 
+        body('products.*')
+            .isUUID().withMessage('Products are invalid'), 
    ]
 }
 

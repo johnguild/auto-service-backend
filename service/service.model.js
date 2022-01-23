@@ -1,3 +1,4 @@
+const Product = require('../product/product.model');
 
 class Service {
 
@@ -11,6 +12,8 @@ class Service {
         price,
         discounted_price,
         cover,
+        products,
+        all_products = [],
     }) {
         const instance = new this({
             id, 
@@ -20,6 +23,8 @@ class Service {
             price,
             discountedPrice: discounted_price,
             cover,
+            products,
+            allProducts: all_products.map((p) => Product.fromDB(p)),
         });
         return instance;
     }
@@ -33,6 +38,8 @@ class Service {
         price,
         discountedPrice,
         cover,
+        products,
+        allProducts = [],
     }) {
         this.id = id;
         this.title = title;
@@ -41,6 +48,9 @@ class Service {
         this.price = price;
         this.discountedPrice = discountedPrice;
         this.cover = cover;
+        this.products = products;
+        this.completeProducts = allProducts;
+
     }
     
 }   

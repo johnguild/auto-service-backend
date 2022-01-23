@@ -34,6 +34,7 @@ const apiVersion = 'v1';
                     price: req.body.price,
                     discountedPrice: req.body.discountedPrice,
                     isPublic: req.body.isPublic,
+                    products: req.body.products,
                 }
             )
 
@@ -86,6 +87,7 @@ const apiVersion = 'v1';
                     price: req.body.price,
                     discountedPrice: req.body.discountedPrice,
                     isPublic: req.body.isPublic,
+                    products: req.body.products,
                 },
                 where= { id: s.id }
             )
