@@ -1,4 +1,3 @@
-
 class OrderService {
 
     static tableName = 'order_services';
@@ -7,7 +6,7 @@ class OrderService {
         id,
         order_id, 
         service_id,
-        price
+        price,
     }) {
         const instance = new this({
             id,
@@ -25,7 +24,7 @@ class OrderService {
         serviceId,
         price,
     }) {
-        this.id,
+        this.id = id;
         this.orderId = orderId;
         this.serviceId = serviceId;
         this.price = price;

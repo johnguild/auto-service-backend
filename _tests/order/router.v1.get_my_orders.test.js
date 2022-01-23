@@ -174,24 +174,30 @@ it('when with valid data, will succeed', async() => {
     const orderData = [{
         customerId: customerUser.id,
         installments: 3,
-        carBrand: 'Toyota',
-        carModel: '2020 Camry',
-        carColor: 'Silver',
-        carPlate: '1234-ABCD'
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        workingDays: 10,
     }, {
         customerId: customerUser.id,
         installments: 3,
-        carBrand: 'Toyota',
-        carModel: '2020 Wigo',
-        carColor: 'Black',
-        carPlate: '1234-ABCD'
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        workingDays: 10,
     }, {
         customerId: personnelUser.id,
         installments: 3,
-        carBrand: 'Toyota',
-        carModel: '2020 Camry',
-        carColor: 'Silver',
-        carPlate: '1234-ABCD'
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        workingDays: 10,
     }]
 
    

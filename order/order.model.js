@@ -13,10 +13,13 @@ class Order {
         total,
         installments,
         completed,
-        car_brand,
-        car_model,
-        car_color,
+        car_make,
+        car_type,
+        car_year,
         car_plate,
+        car_odometer,
+        working_days,
+        created_at,
         all_services = [],
         all_products = [],
         all_payments = [],
@@ -28,12 +31,15 @@ class Order {
             total,
             installments,
             completed,
-            carBrand: car_brand,
-            carModel: car_model,
-            carColor: car_color,
+            carMake: car_make,
+            carType: car_type,
+            carYear: car_year,
             carPlate: car_plate,
-            services: all_services.map((s) => OrderService.fromDB(s)),
-            products: all_products.map((p) => OrderProduct.fromDB(p)),
+            carOdometer: car_odometer,
+            workingDays: working_days,
+            createdAt: created_at,
+            allServices: all_services.map((s) => OrderService.fromDB(s)),
+            allProducts: all_products.map((p) => OrderProduct.fromDB(p)),
             payments: all_payments.map((p) => OrderPayment.fromDB(p)),
             customer: User.fromDB({ ...customer }),
         });
@@ -47,12 +53,15 @@ class Order {
         total,
         installments,
         completed,
-        carBrand,
-        carModel,
-        carColor,
+        carMake,
+        carType,
+        carYear,
         carPlate,
-        services = [],
-        products = [],
+        carOdometer,
+        workingDays,
+        createdAt,
+        allServices = [],
+        allProducts = [],
         payments = [],
         customer,
     }) {
@@ -61,14 +70,40 @@ class Order {
         this.total = total;
         this.installments = installments;
         this.completed = completed;
-        this.carBrand = carBrand;
-        this.carModel = carModel;
-        this.carColor = carColor;
+        this.carMake = carMake;
+        this.carType = carType;
+        this.carYear = carYear;
         this.carPlate = carPlate;
-        this.services = services;
-        this.products = products;
+        this.carOdometer = carOdometer;
+        this.workingDays = workingDays;
+        this.createdAt = createdAt;
         this.payments = payments;
         this.customer = customer;
+        this.services = [];
+
+
+        // console.dir(allProducts, {depth: null});
+
+        for (const service of allServices) {
+            // console.log(service);
+            const formattedService = {
+                serviceId: service.serviceId,
+                price: service.price,
+                products: [],
+            }
+
+            for (const product of allProducts) {
+                if (product.serviceId == service.serviceId) {
+                    formattedService.products.push({
+                        productId: product.productId,
+                        price: product.price,
+                    });
+                }
+            }
+            this.services.push(formattedService);
+        }
+        
+
     }
     
 }   

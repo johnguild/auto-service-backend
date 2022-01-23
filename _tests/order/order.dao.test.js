@@ -167,10 +167,12 @@ describe('insertOrder', () => {
             customerId: customerUser.id,
             total: 1200,
             installments: 3,
-            carBrand: 'Toyota',
-            carModel: '2020 Camry',
-            carColor: 'Silver',
-            carPlate: '1234-ABCD'
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+            workingDays: 10,
         }
 
         let order;
@@ -184,8 +186,9 @@ describe('insertOrder', () => {
         expect(err).toBeNull();
 
         expect(order.customerId).toBe(orderData.customerId);
-        expect(parseFloat(order.total)).toBe(orderData.total)
-        expect(parseFloat(order.installments)).toBe(orderData.installments)
+        expect(parseFloat(order.workingDays)).toBe(orderData.workingDays);
+        expect(parseFloat(order.total)).toBe(orderData.total);
+        expect(parseFloat(order.installments)).toBe(orderData.installments);
     });
 
 });
@@ -198,10 +201,12 @@ describe('insertOrderServices', () => {
             customerId: customerUser.id,
             total: 1200,
             installments: 3,
-            carBrand: 'Toyota',
-            carModel: '2020 Camry',
-            carColor: 'Silver',
-            carPlate: '1234-ABCD'
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+            workingDays: 10,
         });
 
         const service = await serviceDAO.insert({
@@ -245,10 +250,22 @@ describe('insertOrderProducts', () => {
             customerId: customerUser.id,
             total: 1200,
             installments: 3,
-            carBrand: 'Toyota',
-            carModel: '2020 Camry',
-            carColor: 'Silver',
-            carPlate: '1234-ABCD'
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+            workingDays: 10,
+        });
+
+
+        const service = await serviceDAO.insert({
+            title: 'Repair Service',
+            description: 'Something here',
+            cover: 'base64string here',
+            price: 100.2,
+            discountedPrice: undefined,
+            isPublic: true,
         });
 
         const product = await productDAO.insert({
@@ -266,6 +283,7 @@ describe('insertOrderProducts', () => {
             orderProduct = await orderDAO.insertOrderProduct(
                 data = {
                     orderId: order.id, 
+                    serviceId: service.id,
                     productId: product.id, 
                     price: product.price, 
                 }
@@ -277,8 +295,9 @@ describe('insertOrderProducts', () => {
         expect(err).toBeNull();
 
         expect(orderProduct.orderId).toBe(order.id);
-        expect(orderProduct.productId).toBe(product.id)
-        expect(orderProduct.price).toBe(product.price)
+        expect(orderProduct.serviceId).toBe(service.id);
+        expect(orderProduct.productId).toBe(product.id);
+        expect(orderProduct.price).toBe(product.price);
     });
 
 });
@@ -291,10 +310,12 @@ describe('insertOrderPayments', () => {
             customerId: customerUser.id,
             total: 1200,
             installments: 3,
-            carBrand: 'Toyota',
-            carModel: '2020 Camry',
-            carColor: 'Silver',
-            carPlate: '1234-ABCD'
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+            workingDays: 10,
         });
 
         const paymentData = {
@@ -321,11 +342,9 @@ describe('insertOrderPayments', () => {
 
 });
 
-
-
 describe('find', () => {
 
-    it.only('when finding by customerId, will succeed', async() => {
+    it('when finding by customerId, will succeed', async() => {
 
 
         /// create products first
@@ -333,28 +352,34 @@ describe('find', () => {
             {
                 customerId: customerUser.id,
                 installments: 3,
-                carBrand: 'Toyota',
-                carModel: '2020 Camry',
-                carColor: 'Silver',
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
                 carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                workingDays: 10,
                 total: 6000,
             },
             {
                 customerId: customerUser.id,
                 installments: 5,
-                carBrand: 'Toyota',
-                carModel: '2020 Wigo',
-                carColor: 'Black',
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
                 carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                workingDays: 10,
                 total: 6000,
             },
             {
                 customerId: personnelUser.id,
                 installments: 5,
-                carBrand: 'Honda',
-                carModel: '2020 Civi',
-                carColor: 'White',
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
                 carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                workingDays: 10,
                 total: 6000,
             },
         ]
@@ -415,153 +440,4 @@ describe('find', () => {
 
     });
 
-    // it('when finding all with limit, will succeed', async() => {
-
-    //     /// create products first
-    //     const productData = [
-    //         {
-    //             name: 'Product 1',
-    //             sku: '123456',
-    //             description: 'Description 1',
-    //             stock: 12,
-    //             price: 100.5,
-    //         },
-    //         {
-    //             name: 'Product 2',
-    //             sku: '0003123123',
-    //             description: 'Description 2',
-    //             stock: 12,
-    //             price: 100.5,
-    //         },
-    //         {
-    //             name: 'Product 3',
-    //             sku: '000414444',
-    //             description: 'Description 3',
-    //             stock: 120,
-    //             price: 2000,
-    //         },
-    //     ]
-
-    //     for (const data of productData) {
-    //         const c = await productDAO.insert(data);
-    //         // console.log(c);
-    //     }
-
-      
-    //     let err = null;
-    //     try {
-    //         const searchRes = await productDAO.find( 
-    //             where= {},
-    //             options= {limit: 2}
-    //         );
-
-    //         expect(searchRes.length).toBe(2);
-
-    //         // console.log(searchRes);
-    //     } catch (error) {
-    //         err = error;
-    //     }
-    //     expect(err).toBeNull();
-
-    // });
-
-    // it('when finding all with skip, will succeed', async() => {
-
-    //     /// create products first
-    //     const productData = [
-    //         {
-    //             name: 'Product 1',
-    //             sku: '123456',
-    //             description: 'Description 1',
-    //             stock: 12,
-    //             price: 100.5,
-    //         },
-    //         {
-    //             name: 'Product 2',
-    //             sku: '0003123123',
-    //             description: 'Description 2',
-    //             stock: 12,
-    //             price: 100.5,
-    //         },
-    //         {
-    //             name: 'Product 3',
-    //             sku: '000414444',
-    //             description: 'Description 3',
-    //             stock: 120,
-    //             price: 2000,
-    //         },
-    //     ]
-
-    //     for (const data of productData) {
-    //         const c = await productDAO.insert(data);
-    //         // console.log(c);
-    //     }
-
-      
-    //     let err = null;
-    //     try {
-    //         const searchRes = await productDAO.find( 
-    //             where= {},
-    //             options= {skip: 2}
-    //         );
-
-    //         expect(searchRes.length).toBe(1);
-
-    //         // console.log(searchRes);
-    //     } catch (error) {
-    //         err = error;
-    //     }
-    //     expect(err).toBeNull();
-
-    // });
-
-    // it('when finding all with limit and skip, will succeed', async() => {
-
-    //     /// create products first
-    //     const productData = [
-    //         {
-    //             name: 'Product 1',
-    //             sku: '123456',
-    //             description: 'Description 1',
-    //             stock: 12,
-    //             price: 100.5,
-    //         },
-    //         {
-    //             name: 'Product 2',
-    //             sku: '0003123123',
-    //             description: 'Description 2',
-    //             stock: 12,
-    //             price: 100.5,
-    //         },
-    //         {
-    //             name: 'Product 3',
-    //             sku: '000414444',
-    //             description: 'Description 3',
-    //             stock: 120,
-    //             price: 2000,
-    //         },
-    //     ]
-
-    //     for (const data of productData) {
-    //         const c = await productDAO.insert(data);
-    //         // console.log(c);
-    //     }
-
-      
-    //     let err = null;
-    //     try {
-    //         const searchRes = await productDAO.find( 
-    //             where= {},
-    //             options= {limit: 1, skip: 1}
-    //         );
-
-    //         expect(searchRes.length).toBe(1);
-
-    //         // console.log(searchRes);
-    //     } catch (error) {
-    //         err = error;
-    //     }
-    //     expect(err).toBeNull();
-
-    // });
 });

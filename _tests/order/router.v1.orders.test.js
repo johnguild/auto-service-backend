@@ -202,18 +202,95 @@ it('when with valid data, will succeed', async() => {
     const orderData = {
         customerId: customerUser.id,
         installments: 3,
-        services: [
-            services[0].id,
-            services[1].id,
-        ],
-        products: [
-            products[0].id,
-            products[1].id,
-        ],
-        carBrand: 'Toyota',
-        carModel: '2020 Camry',
-        carColor: 'Silver',
-        carPlate: '1234-ABCD'
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        workingDays: 10,
+        services: [{
+            id: services[0].id,
+            price: services[0].price,
+            products: [{
+                id: products[0].id,
+                price: products[1].price,
+            }]
+        },{
+            id: services[0].id,
+            price: services[0].price,
+            products: [{
+                id: products[0].id,
+                price: products[1].price,
+            }]
+        }],
+    }
+
+    const response = await request(app)
+        .post(`/${v}/orders`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(orderData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+
+});
+
+
+
+it('when with there are no services, will succeed', async() => {
+
+
+    // create services first
+    const orderData = {
+        customerId: customerUser.id,
+        installments: 3,
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        workingDays: 10,
+    }
+
+    const response = await request(app)
+        .post(`/${v}/orders`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(orderData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+
+});
+
+
+
+it('when with there are no products in services, will succeed', async() => {
+
+    // create services first
+    const orderData = {
+        customerId: customerUser.id,
+        installments: 3,
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        workingDays: 10,
+        services: [{
+            id: services[0].id,
+            price: services[0].price,
+        },{
+            id: services[0].id,
+            price: services[0].price,
+            products: [{
+                id: products[0].id,
+                price: products[1].price,
+            }]
+        }],
     }
 
     const response = await request(app)

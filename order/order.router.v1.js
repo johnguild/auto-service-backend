@@ -43,86 +43,71 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
-            let hasInvalidService = false;
-            const currentServices = [];
-            for (const serviceId of req.body.services) {
-                const services = await serviceDAO.find(
-                    where = {
-                        id: serviceId,
-                        isPublic: true,
+
+
+            let total = 0;
+            if (req.body.services.length > 0) {
+                let totalIndex = 0;
+                for (const bodyService of req.body.services) {
+                    total += parseFloat(bodyService.price);
+                    if (req.body.services[totalIndex].products.length > 0) {
+                        for (const bodyProduct of req.body.services[totalIndex].products) {
+                            total += parseFloat(bodyProduct.price);
+                        }
                     }
-                );
-                if (services.length == 0) {
-                    hasInvalidService = true;
-                } else {
-                    currentServices.push(services[0]);
+                    totalIndex++;
                 }
             }
-            if (hasInvalidService) {
-                return req.api.status(400).errors([
-                    'Invalid Service Selected'
-                ]).send();
-            }
-
-
-            let hasINvalidProducts = false;
-            const currentProducts = [];
-            for (const productId of req.body.products) {
-                const products = await productDAO.find(
-                    where = {
-                        id: productId,
-                    }
-                );
-                if (products.length == 0) {
-                    hasINvalidProducts = true;
-                } else {
-                    currentProducts.push(products[0]);
-                }
-            }
-            if (hasINvalidProducts) {
-                return req.api.status(400).errors([
-                    'Invalid Products Selected'
-                ]).send();
-            }
-
 
             const order = await orderDAO.insertOrder(
                 data = {
                     customerId: users[0].id,
                     installments: req.body.installments,
-                    carBrand: req.body.carBrand,
-                    carModel: req.body.carModel,
-                    carColor: req.body.carColor,
+                    carMake: req.body.carMake,
+                    carType: req.body.carType,
+                    carYear: req.body.carYear,
                     carPlate: req.body.carPlate,
-                    total: 0// temp
+                    carOdometer: req.body.carOdometer,
+                    workingDays: req.body.workingDays,
+                    total// temp
                 }
             );
 
-            for (const service of currentServices) {
-                await orderDAO.insertOrderService(
-                    data = {
-                        orderId: order.id,
-                        serviceId: service.id,
-                        price: service.discountedPrice > 0 ? service.discountedPrice : service.price,
-                    }
-                );
-            }
+            
+            if (req.body.services.length > 0) {
+                let index = 0;
+                for (const bodyService of req.body.services) {
+                    await orderDAO.insertOrderService(
+                        data = {
+                            orderId: order.id,
+                            serviceId: bodyService.id,
+                            price: bodyService.price,
+                        }
+                    );
+    
+                    if (req.body.services[index].products.length > 0) {
 
-            for (const product of currentProducts) {
-                await orderDAO.insertOrderProduct(
-                    data = {
-                        orderId: order.id,
-                        productId: product.id,
-                        price: product.price,
+                        for (const bodyProduct of req.body.services[index].products) {
+                            await orderDAO.insertOrderProduct(
+                                data = {
+                                    orderId: order.id,
+                                    serviceId: bodyService.id,
+                                    productId: bodyProduct.id,
+                                    price: bodyProduct.price,
+                                }
+                            );
+                        }
                     }
-                );
+    
+                    index++;
+                }
             }
 
             return req.api.status(200)
                 .send(order);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -242,7 +227,7 @@ const apiVersion = 'v1';
                 .send(allOrders);
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

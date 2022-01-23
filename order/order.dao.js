@@ -21,10 +21,12 @@ const insertOrder = async(
         customerId, 
         installments,
         total, 
-        carBrand,
-        carModel,
-        carColor,
+        carMake,
+        carType,
+        carYear,
         carPlate,
+        carOdometer,
+        workingDays,
     }
 ) => {
 
@@ -107,6 +109,7 @@ const insertOrder = async(
  const insertOrderProduct = async(
     data = {
         orderId, 
+        serviceId,
         productId, 
         price, 
     }
@@ -243,7 +246,7 @@ const find = async(
             FROM ${OrderServices.tableName} as s 
         ) as ss ON ss.order_id = o.id 
         LEFT OUTER JOIN (
-            SELECT p.order_id, jsonb_build_object('price', p.price, 
+            SELECT p.order_id, jsonb_build_object('price', p.price, 'service_id', p.service_id, 
                 'product_id', p.product_id) as prdct  
             FROM ${OrderProducts.tableName} as p 
         ) as pr ON pr.order_id = o.id 
