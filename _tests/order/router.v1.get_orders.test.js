@@ -258,6 +258,7 @@ it('when with valid data, will succeed', async() => {
                     serviceId: services[0].id,
                     productId: products[0].id,
                     price: products[0].price,
+                    quantity: 2,
                 }
             )
 

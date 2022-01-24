@@ -97,6 +97,7 @@ class Order {
                     formattedService.products.push({
                         productId: product.productId,
                         price: product.price,
+                        quantity: product.quantity,
                     });
                 }
             }

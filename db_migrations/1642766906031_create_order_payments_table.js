@@ -8,7 +8,8 @@ const up = async() => {
             id uuid DEFAULT uuid_generate_v4 (),
             order_id uuid NOT NULL,
             amount NUMERIC DEFAULT 0.0,
-            date_time TIMESTAMPTZ
+            date_time TIMESTAMPTZ, 
+            PRIMARY KEY(id)
         );`);
 }
 

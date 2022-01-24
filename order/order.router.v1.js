@@ -52,7 +52,7 @@ const apiVersion = 'v1';
                     total += parseFloat(bodyService.price);
                     if (req.body.services[totalIndex].products.length > 0) {
                         for (const bodyProduct of req.body.services[totalIndex].products) {
-                            total += parseFloat(bodyProduct.price);
+                            total += parseFloat(bodyProduct.price) * parseFloat(bodyProduct.quantity);
                         }
                     }
                     totalIndex++;
@@ -94,6 +94,7 @@ const apiVersion = 'v1';
                                     serviceId: bodyService.id,
                                     productId: bodyProduct.id,
                                     price: bodyProduct.price,
+                                    quantity: bodyProduct.quantity,
                                 }
                             );
                         }

@@ -37,6 +37,8 @@ const validate = () => {
             .isUUID().withMessage('Product Id are invalid'), 
         body('services.*.products.*.price')
             .isNumeric().withMessage('Product price are invalid'), 
+        body('services.*.products.*.quantity')
+            .isNumeric().withMessage('Product quantity are invalid'), 
    ]
 }
 

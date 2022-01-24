@@ -214,6 +214,7 @@ it('when with valid data, will succeed', async() => {
             products: [{
                 id: products[0].id,
                 price: products[1].price,
+                quantity: 1,
             }]
         },{
             id: services[0].id,
@@ -221,6 +222,7 @@ it('when with valid data, will succeed', async() => {
             products: [{
                 id: products[0].id,
                 price: products[1].price,
+                quantity: 2,
             }]
         }],
     }
@@ -289,6 +291,7 @@ it('when with there are no products in services, will succeed', async() => {
             products: [{
                 id: products[0].id,
                 price: products[1].price,
+                quantity: 1,
             }]
         }],
     }

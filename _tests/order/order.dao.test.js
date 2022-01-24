@@ -286,6 +286,7 @@ describe('insertOrderProducts', () => {
                     serviceId: service.id,
                     productId: product.id, 
                     price: product.price, 
+                    quantity: 1,
                 }
             );
 
