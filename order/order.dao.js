@@ -179,7 +179,7 @@ const insertOrder = async(
         VALUES (${valueIndexes.toString()}) 
         RETURNING *;`;
 
-    // console.log(text);
+    console.log(text);
     // console.log(values);
     const res = await pool.query({ text, values });
 
@@ -214,7 +214,7 @@ const find = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'AND ' : ''; 
-        whereString += `o.${prefix}${col} = ${valueIndexes[ind]} `;
+        whereString += `${prefix}o.${col} = ${valueIndexes[ind]} `;
     });
 
     if (whereString.trim() != '') {
@@ -253,7 +253,7 @@ const find = async(
             FROM ${OrderProducts.tableName} as p 
         ) as pr ON pr.order_id = o.id 
         LEFT OUTER JOIN (
-            SELECT p.order_id, jsonb_build_object('amount', p.amount, 
+            SELECT p.order_id, jsonb_build_object('id', p.id, 'amount', p.amount, 
                 'date_time', p.date_time) as pymnt  
             FROM ${OrderPayments.tableName} as p 
         ) as py ON py.order_id = o.id 

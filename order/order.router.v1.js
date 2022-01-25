@@ -4,6 +4,7 @@ const tokenator = require('../utils/tokenator');
 const api = require('../middlewares/api');
 const auth = require('../middlewares/auth');
 const ordersValidation = require('./validations/orders');
+const paymentsValidation = require('./validations/payments');
 // const ordersIdValidation = require('./validations/orders_id');
 const getOrdersValidation = require('./validations/get_orders');
 const validationCheck = require('../middlewares/validationCheck');
@@ -118,6 +119,63 @@ const apiVersion = 'v1';
 
 
 
+
+/**
+ * Add Order Payment
+ */
+ router.post(`/${apiVersion}/orders/:id/payments`, 
+    api('Add Order Payment'),
+    auth([User.ROLE_MANAGER]),
+    paymentsValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            /// check if order exists
+            const orders = await orderDAO.find(where = {
+                id: req.params.id,
+                completed: false,
+            });
+
+            if (orders.length == 0) {
+                return req.api.status(404).errors([
+                    'Order Not Found!'
+                ]).send();
+            }
+
+            const s = orders[0];
+
+            await orderDAO.insertOrderPayment(
+                data= {
+                    orderId: s.id,
+                    amount: req.body.amount,
+                    dateTime: new Date().toISOString(),
+                }
+            )
+
+            // const tmpOrders = await orderDAO.find(where = {
+            //     id: req.params.id,
+            // });
+
+            // console.dir(tmpOrders, {depth: null});
+
+            return req.api.status(200).send();
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
+    }
+);
+
+
+
+
 // /**
 //  * Update a Order
 //  */
@@ -188,7 +246,6 @@ const apiVersion = 'v1';
 
 //     }
 // );
-
 
 
 

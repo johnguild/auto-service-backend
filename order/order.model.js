@@ -87,7 +87,7 @@ class Order {
 
 
         // console.dir(allProducts, {depth: null});
-
+        let newTotal = 0;
         for (const service of allServices) {
             // console.log(service);
             const formattedService = {
@@ -96,6 +96,8 @@ class Order {
                 products: [],
             }
 
+            newTotal += parseFloat(service.price);
+
             for (const product of allProducts) {
                 if (product.serviceId == service.serviceId) {
                     formattedService.products.push({
@@ -103,9 +105,20 @@ class Order {
                         price: product.price,
                         quantity: product.quantity,
                     });
+                    newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
                 }
             }
             this.services.push(formattedService);
+
+
+            let newTotalPayment = parseFloat(downPayment);
+            for (const pm of payments) {
+                newTotalPayment += parseFloat(pm.amount);
+            }
+
+            // custom values
+            this.total = newTotal;
+            this.totalPayment = newTotalPayment;
         }
         
 
