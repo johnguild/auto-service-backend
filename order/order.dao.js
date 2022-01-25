@@ -27,6 +27,7 @@ const insertOrder = async(
         carPlate,
         carOdometer,
         workingDays,
+        downPayment,
     }
 ) => {
 

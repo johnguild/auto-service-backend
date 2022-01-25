@@ -208,6 +208,7 @@ it('when with valid data, will succeed', async() => {
         carPlate: '1234-ABCD',
         carOdometer: '6700',
         workingDays: 10,
+        downPayment: 1000,
         services: [{
             id: services[0].id,
             price: services[0].price,
@@ -254,6 +255,7 @@ it('when with there are no services, will succeed', async() => {
         carPlate: '1234-ABCD',
         carOdometer: '6700',
         workingDays: 10,
+        downPayment: 1000,
     }
 
     const response = await request(app)
@@ -282,6 +284,7 @@ it('when with there are no products in services, will succeed', async() => {
         carPlate: '1234-ABCD',
         carOdometer: '6700',
         workingDays: 10,
+        downPayment: 1000,
         services: [{
             id: services[0].id,
             price: services[0].price,

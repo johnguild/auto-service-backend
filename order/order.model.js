@@ -19,6 +19,7 @@ class Order {
         car_plate,
         car_odometer,
         working_days,
+        down_payment,
         created_at,
         all_services = [],
         all_products = [],
@@ -37,6 +38,7 @@ class Order {
             carPlate: car_plate,
             carOdometer: car_odometer,
             workingDays: working_days,
+            downPayment: down_payment,
             createdAt: created_at,
             allServices: all_services.map((s) => OrderService.fromDB(s)),
             allProducts: all_products.map((p) => OrderProduct.fromDB(p)),
@@ -59,6 +61,7 @@ class Order {
         carPlate,
         carOdometer,
         workingDays,
+        downPayment,
         createdAt,
         allServices = [],
         allProducts = [],
@@ -76,6 +79,7 @@ class Order {
         this.carPlate = carPlate;
         this.carOdometer = carOdometer;
         this.workingDays = workingDays;
+        this.downPayment = downPayment;
         this.createdAt = createdAt;
         this.payments = payments;
         this.customer = customer;

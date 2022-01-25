@@ -23,6 +23,8 @@ const validate = () => {
             .isLength({ min: 1, max: 300 }).withMessage('Car Odometer must be 1-300 characters only'),
         body('workingDays')
             .isInt().withMessage('Working Days is Invalid'),
+        body('downPayment')
+            .isNumeric().withMessage('Down Payment is Invalid'),
         body('services')
             .default([])
             .isArray().withMessage('Services must be an array of object'), 

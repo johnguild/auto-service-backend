@@ -43,8 +43,6 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
-
-
             let total = 0;
             if (req.body.services.length > 0) {
                 let totalIndex = 0;
@@ -69,6 +67,7 @@ const apiVersion = 'v1';
                     carPlate: req.body.carPlate,
                     carOdometer: req.body.carOdometer,
                     workingDays: req.body.workingDays,
+                    downPayment: req.body.downPayment,
                     total// temp
                 }
             );

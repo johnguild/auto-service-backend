@@ -16,6 +16,7 @@ const up = async() => {
             car_plate VARCHAR(300) NOT NULL,
             car_odometer VARCHAR(300) NOT NULL,
             working_days NUMERIC DEFAULT 0,
+            down_payment NUMERIC DEFAULT 0,
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(id)
         );`);
