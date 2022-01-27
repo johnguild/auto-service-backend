@@ -5,6 +5,8 @@ const api = require('../middlewares/api');
 const auth = require('../middlewares/auth');
 const ordersValidation = require('./validations/orders');
 const paymentsValidation = require('./validations/payments');
+const servicesValidation = require('./validations/services');
+const completeValidation = require('./validations/complete');
 // const ordersIdValidation = require('./validations/orders_id');
 const getOrdersValidation = require('./validations/get_orders');
 const validationCheck = require('../middlewares/validationCheck');
@@ -119,6 +121,83 @@ const apiVersion = 'v1';
 
 
 
+/**
+ * Add Order Service
+ */
+ router.post(`/${apiVersion}/orders/:id/services`, 
+    api('Add Order Service'),
+    auth([User.ROLE_MANAGER]),
+    servicesValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            /// check if order exists
+            const orders = await orderDAO.find(where = {
+                id: req.params.id,
+                completed: false,
+            });
+
+            if (orders.length == 0) {
+                return req.api.status(404).errors([
+                    'Order Not Found!'
+                ]).send();
+            }
+
+            const order = orders[0];
+
+            if (req.body.services.length > 0) {
+                let index = 0;
+                for (const bodyService of req.body.services) {
+                    await orderDAO.insertOrderService(
+                        data = {
+                            orderId: order.id,
+                            serviceId: bodyService.id,
+                            price: bodyService.price,
+                        }
+                    );
+    
+                    if (req.body.services[index].products.length > 0) {
+
+                        for (const bodyProduct of req.body.services[index].products) {
+                            await orderDAO.insertOrderProduct(
+                                data = {
+                                    orderId: order.id,
+                                    serviceId: bodyService.id,
+                                    productId: bodyProduct.id,
+                                    price: bodyProduct.price,
+                                    quantity: bodyProduct.quantity,
+                                }
+                            );
+                        }
+                    }
+    
+                    index++;
+                }
+            }
+
+            // const tmpOrders = await orderDAO.find(where = {
+            //     id: req.params.id,
+            // });
+
+            // console.dir(tmpOrders, {depth: null});
+
+            return req.api.status(200).send();
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
+    }
+);
+
+
+
 
 /**
  * Add Order Payment
@@ -174,6 +253,61 @@ const apiVersion = 'v1';
 );
 
 
+
+
+/**
+ * Complete Order
+ */
+ router.post(`/${apiVersion}/orders/:id/complete`, 
+    api('Complete the Order'),
+    auth([User.ROLE_MANAGER]),
+    completeValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            /// check if order exists
+            const orders = await orderDAO.find(where = {
+                id: req.params.id,
+                completed: false,
+            });
+
+            if (orders.length == 0) {
+                return req.api.status(404).errors([
+                    'Order Not Found!'
+                ]).send();
+            }
+
+            const o = orders[0];
+
+            await orderDAO.updateOrder(
+                data= {
+                    completed: true
+                },
+                where= {
+                    id: o.id
+                }
+            )
+
+            // const tmpOrders = await orderDAO.find(where = {
+            //     id: req.params.id,
+            // });
+
+            // console.dir(tmpOrders, {depth: null});
+
+            return req.api.status(200).send();
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
+    }
+);
 
 
 // /**

@@ -3,6 +3,8 @@ const pool = getPool();
 const { toSnakeCase } = require('../utils/string');
 
 const User = require('../user/user.model');
+const Service = require('../service/service.model');
+const Product = require('../product/product.model');
 const Order = require('./order.model');
 const OrderServices = require('./orderServices.model');
 const OrderProducts = require('./orderProducts.model');
@@ -179,13 +181,75 @@ const insertOrder = async(
         VALUES (${valueIndexes.toString()}) 
         RETURNING *;`;
 
-    console.log(text);
+    // console.log(text);
     // console.log(values);
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? OrderPayments.fromDB(res.rows[0]) : null;
 }
 
+
+const updateOrder = async(
+    data = {
+        completed,
+    }, 
+    where = {
+        id,
+    }
+) => {
+    /// collect all variables need to build the query
+    const columns = [], wColumns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in data) {
+        if (data[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(data[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            wColumns.push(snakedAttr);
+            values.push(where[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let valuIndexPos = 0;
+    let updateString = ' ';
+    columns.forEach((col, ind) => {
+        updateString += ` ${col} = ${valueIndexes[ind]} ,`;
+        valuIndexPos = ind;
+    });
+
+    if(updateString.charAt(updateString.length-1) == ',') {
+        updateString = updateString.slice(0, -1);
+    }
+
+    let whereString = ' ';
+    wColumns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'AND ' : ''; 
+        whereString += `${prefix}${col} = ${valueIndexes[valuIndexPos + ind + 1]} `;
+    });
+     
+    const text = `
+        UPDATE ${Order.tableName} 
+        SET ${updateString} 
+        WHERE ${whereString}
+        RETURNING *;`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => Order.fromDB(u)) : [];
+}
 
 const find = async(
     where= {
@@ -243,13 +307,16 @@ const find = async(
             CASE WHEN count(py) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT py.pymnt) END as all_payments 
         FROM ${Order.tableName} as o 
         LEFT OUTER JOIN (
-            SELECT s.order_id, jsonb_build_object('service_id', s.service_id, 
+            SELECT s.order_id, jsonb_build_object('service_id', s.service_id, 'title', 
+                (SELECT ss.title FROM ${Service.tableName} as ss WHERE ss.id = s.service_id ),
                 'price', s.price) as srv  
             FROM ${OrderServices.tableName} as s 
         ) as ss ON ss.order_id = o.id 
         LEFT OUTER JOIN (
             SELECT p.order_id, jsonb_build_object('price', p.price, 'service_id', p.service_id, 
-                'product_id', p.product_id, 'quantity', p.quantity) as prdct  
+                'product_id', p.product_id, 'quantity', p.quantity, 
+                'name', (SELECT pp.name FROM ${Product.tableName} as pp WHERE pp.id = p.product_id )
+                ) as prdct  
             FROM ${OrderProducts.tableName} as p 
         ) as pr ON pr.order_id = o.id 
         LEFT OUTER JOIN (
@@ -272,7 +339,6 @@ const find = async(
     return res.rows.length > 0 ? 
         res.rows.map(u => Order.fromDB(u)) : [];
 }
-
 
 
 const findCount = async(
@@ -325,7 +391,7 @@ module.exports = {
     insertOrderService,
     insertOrderProduct,
     insertOrderPayment,
-    // update,
+    updateOrder,
     find,
     findCount
 }

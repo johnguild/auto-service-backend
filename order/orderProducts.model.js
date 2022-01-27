@@ -10,6 +10,7 @@ class OrderProduct {
         product_id,
         price,
         quantity,
+        name,
     }) {
         const instance = new this({
             id,
@@ -18,6 +19,7 @@ class OrderProduct {
             productId: product_id,
             price,
             quantity,
+            name,
         });
         return instance;
     }
@@ -30,6 +32,7 @@ class OrderProduct {
         productId,
         price,
         quantity,
+        name,
     }) {
         this.id = id;
         this.orderId = orderId;
@@ -37,6 +40,7 @@ class OrderProduct {
         this.productId = productId;
         this.price = price;
         this.quantity = quantity;
+        this.name = name;
     }
     
 }   

@@ -343,6 +343,64 @@ describe('insertOrderPayments', () => {
 
 });
 
+
+describe('updateOrder', () => {
+
+    it('when creating with valid and complete data, will succeed', async() => {
+
+        const orderData = {
+            customerId: customerUser.id,
+            total: 1200,
+            installments: 3,
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+            workingDays: 10,
+        }
+
+        const order2Data = {
+            customerId: customerUser.id,
+            total: 1200,
+            installments: 3,
+            carMake: 'Toyota',
+            carType: 'VIOS',
+            carYear: '1999',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+            workingDays: 10,
+        }
+        // insert orderfirst
+        const savedOrder = await orderDAO.insertOrder(orderData);
+        await orderDAO.insertOrder(order2Data);
+
+        let orders;
+        let err = null;
+        try {
+            orders = await orderDAO.updateOrder(
+                data = {completed: true},
+                where = {id : savedOrder.id}
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(orders, {depth: null});
+        expect(orders[0].completed).toBe(true);
+
+        const moreOrders = await orderDAO.find(
+            where = {customerId: customerUser.id }
+        )
+        expect(moreOrders[0].completed).toBe(false);
+        expect(moreOrders[1].completed).toBe(true);
+
+    });
+
+});
+
 describe('find', () => {
 
     it('when finding by customerId, will succeed', async() => {

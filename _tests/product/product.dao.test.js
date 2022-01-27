@@ -366,7 +366,7 @@ describe('find', () => {
 
 describe('findLike', () => {
 
-    it.only('when finding by sku on records, will succeed', async() => {
+    it('when finding by sku on records, will succeed', async() => {
         /// create products first
         const productData = [
             {
@@ -417,9 +417,8 @@ describe('findLike', () => {
         expect(err).toBeNull();
 
     });
-
- 
-    it.only('when finding by sku on records, will succeed', async() => {
+    
+    it('when finding by sku on records, will succeed', async() => {
         /// create products first
         const productData = [
             {

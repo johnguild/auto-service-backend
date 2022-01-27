@@ -93,6 +93,7 @@ class Order {
             const formattedService = {
                 serviceId: service.serviceId,
                 price: service.price,
+                title: service.title,
                 products: [],
             }
 
@@ -104,6 +105,7 @@ class Order {
                         productId: product.productId,
                         price: product.price,
                         quantity: product.quantity,
+                        name: product.name,
                     });
                     newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
                 }
