@@ -4,6 +4,7 @@ const tokenator = require('../utils/tokenator');
 const api = require('../middlewares/api');
 const auth = require('../middlewares/auth');
 const loginValidation = require('./validations/login');
+const updateProfileValidation = require('./validations/update_profile');
 const validationCheck = require('../middlewares/validationCheck');
 const userDAO = require('./user.dao');
 const User = require('./user.model');
@@ -86,6 +87,79 @@ const apiVersion = 'v1';
                 'Failed processing request. Pleast try again!'
             ]).send();
         }
+    }
+);
+
+
+
+/**
+ * Update User
+ */
+ router.post(`/${apiVersion}/update-profile`, 
+    api('Update User'),
+    auth(),
+    updateProfileValidation(),
+    validationCheck(),
+    async (req, res) => {
+        try {
+
+            if (req.body.email) {
+                /// check if email is available 
+                const dupEmailAcc = await userDAO.find(where = {
+                    email: req.body.email,
+                });
+
+                if (dupEmailAcc.length > 0) {
+                    let hasDuplicate = false;
+                    for (const sameEmailAcc of dupEmailAcc) {
+                        if (sameEmailAcc.id != req.user.id) {
+                            hasDuplicate = true;
+                        }
+                    }
+
+                    if (hasDuplicate) {
+                        return req.api.status(400).errors([
+                            'Email already taken!'
+                        ]).send();
+                    }
+                }
+            }
+
+            let encryptedPass;
+            if (req.body.password) {
+                /// encrypt password
+                encryptedPass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_SALT));
+            }
+
+            const users = await userDAO.update(
+                data= {
+                    email: req.body.email,
+                    mobile: req.body.mobile,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    gender: req.body.gender,
+                    birthDay: req.body.birthDate,
+                    password: encryptedPass
+                },
+                where= {
+                    id: req.user.id
+                }
+            );
+        
+            return req.api.status(200)
+                .token(tokenator.generate({
+                    userId: req.user.id,
+                }))
+                .send(users[0]);
+
+        } catch (error) {
+            console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
     }
 );
 
