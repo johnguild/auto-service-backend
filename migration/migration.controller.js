@@ -4,7 +4,7 @@ const fs = require('fs');
 const MigrationDAO = require('./migration.dao');
 
 const mainFolder = 'db_migrations';
-const testFolder = 'tests';
+const testFolder = '_tests';
 
 
 const check = async () => {
@@ -17,8 +17,8 @@ const create = async (label) => {
     const name = `${new Date().getTime().toString()}_${label.toLowerCase().split(" ").join("_")}`;
     const testPath = path.join(
         appRoot.toString(), 
+        testFolder,
         mainFolder, 
-        testFolder, 
         `${name}.test.js`);
     const jsName = `${name}.js`;
     const filePath = path.join(
@@ -29,14 +29,19 @@ const create = async (label) => {
     try {
         // actual migration
         await fs.promises.writeFile(filePath,
-`const { mkReq } = require('../db/mssql');
+`const { getPool } = require('../db/postgres');
+const pool = getPool();
+const ClassName = require('../className/className.model.js');
 
         
 const up = async() => {
     const request = await mkReq();
     return await request
-        .query(\`CREATE TABLE table_name (
-            id INT PRIMARY KEY IDENTITY (1, 1),
+        .query(\`CREATE TABLE \${ClassName.tableName} (
+            id uuid DEFAULT uuid_generate_v4 (),
+            varchar_name VARCHAR, 
+            date_name TIMESTAMPTZ, 
+            boolean_name BOOL DEFAULT false, 
             PRIMARY KEY(id)
         );\`);
 }
@@ -44,7 +49,7 @@ const up = async() => {
 const down = async() => {
     const request = await mkReq();
     return await request
-        .query(\`DROP TABLE IF EXISTS table_name; \`);
+        .query(\`DROP TABLE IF EXISTS \${ClassName.tableName}; \`);
 }
 
 module.exports = {
@@ -52,10 +57,14 @@ module.exports = {
     down
 }
 `);     
+
+        await new Promise(resolve => setTimeout(() => resolve(), 100));
         // test case
         await fs.promises.writeFile(testPath, 
-`const { mkReq, closePool } = require('../../db/mssql');
-const {up, down} = require('../${name}.js');
+`const { getPool, closePool } = require('../../db/postgres');
+const {up, down} = require('../../db_migrations/${name}.js');
+const pool = getPool();
+const ClassName = require('../../className/className.model.js');
 
 
 afterAll( async () => {
@@ -66,12 +75,16 @@ describe('up', () => {
     it('when migrating, will succeed', async() => {
         let err = null;
         try {
+            await new Promise(resolve => setTimeout(() => resolve(), 100));
             await up();
         } catch (error) {
             err = error;
         }
         expect(err).toBeNull();
+        
         // do some assertion
+        const res = await pool.query(\`SELECT to_regclass('\${ClassName.tableName}');\`);
+        expect(res.rows[0].to_regclass).toBe(ClassName.tableName);
     });
 });
 
@@ -85,7 +98,10 @@ describe('down', () => {
             err = error;
         }
         expect(err).toBeNull();
+        
         // do some assertion
+        const res = await pool.query(\`SELECT to_regclass('\${ClassName.tableName}');\`);
+        expect(res.rows[0].to_regclass).toBeNull();
     });
 });
 

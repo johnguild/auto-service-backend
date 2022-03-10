@@ -3,7 +3,8 @@ class User {
 
     static tableName = 'users';
     static ROLE_MANAGER = 'manager';
-    static ROLE_PERSONNEL = 'personnel';
+    static ROLE_PERSONNEL = 'personnel';// inventory person
+    static ROLE_CLERK = 'clerk';// tools person
     static ROLE_CUSTOMER = 'customer';
 
     static fromDB({

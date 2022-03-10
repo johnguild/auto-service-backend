@@ -8,15 +8,14 @@ const up = async() => {
             id uuid DEFAULT uuid_generate_v4 (),
             customer_id uuid NOT NULL,
             total NUMERIC DEFAULT 0.0,
-            installments NUMERIC DEFAULT 0,
-            completed BOOL DEFAULT false,
             car_make VARCHAR(300) NOT NULL,
             car_type VARCHAR(300) NOT NULL,
             car_year VARCHAR(300) NOT NULL,
             car_plate VARCHAR(300) NOT NULL,
             car_odometer VARCHAR(300) NOT NULL,
-            working_days NUMERIC DEFAULT 0,
-            down_payment NUMERIC DEFAULT 0,
+            receive_date TIMESTAMPTZ, 
+            warranty_end TIMESTAMPTZ, 
+            completed BOOL DEFAULT false,
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY(id)
         );`);

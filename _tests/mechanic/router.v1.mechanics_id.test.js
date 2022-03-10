@@ -1,0 +1,206 @@
+const request = require('supertest');
+const bcrypt = require('bcryptjs');
+const tokenator = require('../../utils/tokenator');
+const {getPool, closePool} = require('../../db/postgres');
+const pool = getPool();
+
+const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
+const userDAO = require('../../user/user.dao');
+const User = require('../../user/user.model');
+
+const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
+const mechanicDAO = require('../../mechanic/mechanic.dao');
+const Mechanic = require('../../mechanic/mechanic.model');
+
+const { app } = require('../../app');
+const v = 'v1';
+
+const managerData = {
+    email: 'johnrobin.autoservice@gmail.com',
+    mobile: '639359372676',
+    password: 'P@ssW0rd',
+    firstName: 'John Robin',
+    lastName: 'Perez',
+    birthDay: new Date(Date.now()).toISOString(),
+    gender: 'Male',
+    role: User.ROLE_MANAGER,
+}
+
+let managerId;
+let managerToken;
+
+
+beforeAll( async () => {
+    await new Promise(resolve => setTimeout(() => resolve(), 100));
+    // clear db
+    await userMigration0.down();
+    await mechanicMigration0.down();
+    // migrate tables
+    await userMigration0.up();
+    await mechanicMigration0.up();
+
+    const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
+    const manager = await userDAO.insert(data = {
+        ...managerData,
+        password: managerEncryptedPass,
+    });     
+    
+    managerId = manager.id;
+    managerToken = tokenator.generate({ userId: manager.id });
+});
+
+beforeEach( async () => {
+    await pool.query(`DELETE FROM ${Mechanic.tableName};`);
+});
+
+afterAll( async () => {
+    await userMigration0.down();
+    await mechanicMigration0.down();
+    await closePool();
+});
+
+
+it('when with valid data, will succeed', async() => {
+
+    /// create personal
+    const mechanicData = {
+        mobile: '639359372676',
+        firstName: 'Personnel',
+        lastName: 'One',
+        birthDay: new Date(Date.now()).toISOString(),
+        gender: 'Male',
+    }
+    const mechanic = await mechanicDAO.insert(mechanicData);
+
+    // console.log(mechanic);
+
+    const newData = {
+        mobile: '63935937268',
+        firstName: 'Personnel Edited',
+        lastName: 'Two',
+        birthDate: new Date(Date.now()).toISOString(),
+        gender: 'Female',
+    }
+
+    const response = await request(app)
+        .post(`/${v}/mechanics/${mechanic.id}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(newData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.mobile).toBe(newData.mobile);
+    expect(response.body.data.firstName).toBe(newData.firstName);
+    expect(response.body.data.lastName).toBe(newData.lastName);
+    expect(response.body.data.birthDay).toBe(newData.birthDate);
+    expect(response.body.data.gender).toBe(newData.gender);
+
+});
+
+it('when with non existing mechanic id data, will fail', async() => {
+
+    /// create personal
+    const mechanicData = {
+        mobile: '639359372676',
+        firstName: 'Personnel',
+        lastName: 'One',
+        birthDay: new Date(Date.now()).toISOString(),
+        gender: 'Male',
+    }
+    const mechanic = await mechanicDAO.insert(mechanicData);
+
+    // console.log(mechanic);
+
+    const newData = {
+        mobile: '63935937268',
+        firstName: 'Personnel Edited',
+        lastName: 'Two',
+        birthDate: new Date(Date.now()).toISOString(),
+        gender: 'Female',
+    }
+
+    /// use manager id instead
+    const response = await request(app)
+        .post(`/${v}/mechanics/${managerId}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(newData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(404);
+
+
+});
+
+
+it('when with invalid uuid data, will fail', async() => {
+
+    /// create personal
+    const mechanicData = {
+        mobile: '639359372676',
+        firstName: 'Personnel',
+        lastName: 'One',
+        birthDay: new Date(Date.now()).toISOString(),
+        gender: 'Male',
+    }
+    const mechanic = await mechanicDAO.insert(mechanicData);
+
+    // console.log(mechanic);
+
+    const newData = {
+        mobile: '63935937268',
+        firstName: 'Personnel Edited',
+        lastName: 'Two',
+        birthDate: new Date(Date.now()).toISOString(),
+        gender: 'Female',
+    }
+
+    const response = await request(app)
+        .post(`/${v}/mechanics/notauuid`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(newData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(400);
+
+});
+
+
+
+it('when with invalid mobile data, will fail', async() => {
+
+    /// create personal
+    const mechanicData = {
+        mobile: '639359372676',
+        firstName: 'Personnel',
+        lastName: 'One',
+        birthDay: new Date(Date.now()).toISOString(),
+        gender: 'Male',
+    }
+    const mechanic = await mechanicDAO.insert(mechanicData);
+
+    // console.log(mechanic);
+
+    /// invalid mobile
+    const newData = {
+        mobile: 'asdfasdf',
+        firstName: 'Personnel Edited',
+        lastName: 'Two',
+        birthDate: new Date(Date.now()).toISOString(),
+        gender: 'Female',
+    }
+
+    const response = await request(app)
+        .post(`/${v}/mechanics/${mechanic.id}`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(newData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(400);
+
+});
+

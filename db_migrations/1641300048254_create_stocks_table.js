@@ -8,8 +8,10 @@ const up = async() => {
             id uuid DEFAULT uuid_generate_v4 (),
             product_id uuid NOT NULL, 
             personnel_id uuid NOT NULL, 
-            total NUMERIC DEFAULT 0, 
             source VARCHAR DEFAULT '', 
+            total NUMERIC DEFAULT 0, 
+            unit_price NUMERIC DEFAULT 0.0, 
+            selling_price NUMERIC DEFAULT 0.0, 
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
             PRIMARY KEY(id)
         );`);
