@@ -184,8 +184,7 @@ const find = async(
         FROM ${Service.tableName} as s
         LEFT OUTER JOIN (
             SELECT p.id, jsonb_build_object('id', p.id, 'name', p.name, 'sku', p.sku, 
-                'description', p.description, 'price', p.price
-                ) as prdct  
+                'description', p.description) as prdct  
             FROM ${Product.tableName} as p 
         ) as pr ON pr.id = any(s.products)  
         ${whereString} 

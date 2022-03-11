@@ -5,19 +5,23 @@ class Stock {
 
     static fromDB({
         id, 
-        name,
-        sku,
-        description,
-        stock,
-        price,
+        product_id,
+        personnel_id,
+        supplier,
+        quantity,
+        unit_price,
+        selling_price,
+        created_at,
     }) {
         const instance = new this({
             id,  
-            name,
-            sku,
-            description,
-            stock,
-            price,
+            productId: product_id,
+            personnelId: personnel_id,
+            supplier,
+            quantity,
+            unitPrice: unit_price,
+            sellingPrice: selling_price,
+            createdAt: created_at,
         });
         return instance;
     }
@@ -25,18 +29,22 @@ class Stock {
     
     constructor({ 
         id,  
-        name,
-        sku,
-        description,
-        stock,
-        price,
+        productId,
+        personnelId,
+        supplier,
+        quantity,
+        unitPrice,
+        sellingPrice,
+        createdAt,
     }) {
         this.id = id;
-        this.name = name;
-        this.sku = sku;
-        this.description = description;
-        this.stock = stock;
-        this.price = price;
+        this.productId = productId;
+        this.personnelId = personnelId;
+        this.supplier = supplier;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+        this.sellingPrice = sellingPrice;
+        this.createdAt = createdAt;
     }
     
 }   

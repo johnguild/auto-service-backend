@@ -12,9 +12,13 @@ const productMigration0 = require('../../db_migrations/1641297582352_create_prod
 const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const Stock = require('../../stock/stock.model');
+const stockDAO = require('../../stock/stock.dao');
 
 const { app } = require('../../app');
 const v = 'v1';
+
 const personnelData = {
     email: 'johnrobin.autoproduct@gmail.com',
     mobile: '639359372676',
@@ -26,62 +30,74 @@ const personnelData = {
     role: User.ROLE_PERSONNEL,
 }
 
-let personnelToken;
-let personnelId;
+const productData = {
+    name: 'Product 1',
+    sku: '123456',
+    description: 'Description 1',
+}
 
+let personnelToken, personnel, product;
 
-beforeAll( async () => {
+beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     // migrate tables
     await userMigration0.up();
     await productMigration0.up();
+    await stockMigration0.up();
 
 
     const personnelEncryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
+    personnel = await userDAO.insert(data = {
         ...personnelData,
         password: personnelEncryptedPass,
     });     
-
-    personnelId = personnel.id;
     personnelToken = tokenator.generate({ userId: personnel.id });
-});
 
-beforeEach( async () => {
-    await pool.query(`DELETE FROM ${Product.tableName};`);
+    product = await productDAO.insert(productData);
 
 });
 
-afterAll( async () => {
+beforeEach( async() => {
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
+});
+
+afterAll( async() => {
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await closePool();
 });
+
 
 
 it('when with valid data, will succeed', async() => {
 
     /// create service
-    const productData = {
-        name: 'Product 1',
-        sku: '123456',
-        description: 'Description 1',
+    const stockData = {
+        productId: product.id,
+        personnelId: personnel.id,
+        supplier: 'Some Supplier',
+        quantity: 120,
+        unitPrice: 300.5,
+        sellingPrice: 330,
     }
-    const service = await productDAO.insert(productData);
+    const service = await stockDAO.insert(stockData);
 
     // console.log(personnel);
 
     const newData = {
-        name: 'Product 2',
-        sku: '123456',
-        description: 'Description 3',
+        supplier: 'Test',
+        quantity: 20,
+        unitPrice: 100.5,
+        sellingPrice: 130,
     }
 
     const response = await request(app)
-        .post(`/${v}/products/${service.id}`)
+        .post(`/${v}/stocks/${service.id}`)
         .set('Authorization', `Bearer ${personnelToken}`)
         .send(newData);
 
@@ -89,22 +105,26 @@ it('when with valid data, will succeed', async() => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).not.toBeNull();
-    expect(response.body.data.name).toBe(newData.name);
-    expect(response.body.data.description).toBe(newData.description);
+    expect(response.body.data.supplier).toBe(newData.supplier);
+    expect(response.body.data.quantity).toBe(newData.quantity.toString());
+    expect(response.body.data.unitPrice).toBe(newData.unitPrice.toString());
+    expect(response.body.data.sellingPrice).toBe(newData.sellingPrice.toString());
+
 });
 
-it('when with non existing product id data, will fail', async() => {
+it('when with non existing stock id data, will fail', async() => {
 
 
     const newData = {
-        name: 'Product 2',
-        sku: '123456',
-        description: 'Description 3',
+        supplier: 'Test',
+        quantity: 20,
+        unitPrice: 100.5,
+        sellingPrice: 130,
     }
 
     /// use personnel id instead
     const response = await request(app)
-        .post(`/${v}/products/${personnelId}`)
+        .post(`/${v}/stocks/${personnel.id}`)
         .set('Authorization', `Bearer ${personnelToken}`)
         .send(newData);
 
@@ -117,13 +137,13 @@ it('when with non existing product id data, will fail', async() => {
 it('when with invalid uuid data, will fail', async() => {
 
     const newData = {
-        name: 'Product 2',
-        sku: '123456',
-        description: 'Description 3',
+        quantity: 20,
+        unitPrice: 100.5,
+        sellingPrice: 130,
     }
 
     const response = await request(app)
-        .post(`/${v}/products/notauuid`)
+        .post(`/${v}/stocks/notauuid`)
         .set('Authorization', `Bearer ${personnelToken}`)
         .send(newData);
 

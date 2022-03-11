@@ -166,13 +166,11 @@ describe('insertOrder', () => {
         const orderData = {
             customerId: customerUser.id,
             total: 1200,
-            installments: 3,
             carMake: 'Toyota',
             carType: '2020 Camry',
             carYear: '2000',
             carPlate: '1234-ABCD',
             carOdometer: '6700',
-            workingDays: 10,
         }
 
         let order;
@@ -186,9 +184,7 @@ describe('insertOrder', () => {
         expect(err).toBeNull();
 
         expect(order.customerId).toBe(orderData.customerId);
-        expect(parseFloat(order.workingDays)).toBe(orderData.workingDays);
         expect(parseFloat(order.total)).toBe(orderData.total);
-        expect(parseFloat(order.installments)).toBe(orderData.installments);
     });
 
 });
@@ -200,13 +196,11 @@ describe('insertOrderServices', () => {
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
             total: 1200,
-            installments: 3,
             carMake: 'Toyota',
             carType: '2020 Camry',
             carYear: '2000',
             carPlate: '1234-ABCD',
             carOdometer: '6700',
-            workingDays: 10,
         });
 
         const service = await serviceDAO.insert({
@@ -249,13 +243,11 @@ describe('insertOrderProducts', () => {
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
             total: 1200,
-            installments: 3,
             carMake: 'Toyota',
             carType: '2020 Camry',
             carYear: '2000',
             carPlate: '1234-ABCD',
             carOdometer: '6700',
-            workingDays: 10,
         });
 
 
@@ -310,13 +302,11 @@ describe('insertOrderPayments', () => {
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
             total: 1200,
-            installments: 3,
             carMake: 'Toyota',
             carType: '2020 Camry',
             carYear: '2000',
             carPlate: '1234-ABCD',
             carOdometer: '6700',
-            workingDays: 10,
         });
 
         const paymentData = {
@@ -343,7 +333,6 @@ describe('insertOrderPayments', () => {
 
 });
 
-
 describe('updateOrder', () => {
 
     it('when creating with valid and complete data, will succeed', async() => {
@@ -351,25 +340,21 @@ describe('updateOrder', () => {
         const orderData = {
             customerId: customerUser.id,
             total: 1200,
-            installments: 3,
             carMake: 'Toyota',
             carType: '2020 Camry',
             carYear: '2000',
             carPlate: '1234-ABCD',
             carOdometer: '6700',
-            workingDays: 10,
         }
 
         const order2Data = {
             customerId: customerUser.id,
             total: 1200,
-            installments: 3,
             carMake: 'Toyota',
             carType: 'VIOS',
             carYear: '1999',
             carPlate: '1234-ABCD',
             carOdometer: '6700',
-            workingDays: 10,
         }
         // insert orderfirst
         const savedOrder = await orderDAO.insertOrder(orderData);
@@ -410,35 +395,29 @@ describe('find', () => {
         const orderData = [
             {
                 customerId: customerUser.id,
-                installments: 3,
                 carMake: 'Toyota',
                 carType: '2020 Camry',
                 carYear: '2000',
                 carPlate: '1234-ABCD',
                 carOdometer: '6700',
-                workingDays: 10,
                 total: 6000,
             },
             {
                 customerId: customerUser.id,
-                installments: 5,
                 carMake: 'Toyota',
                 carType: '2020 Wigo',
                 carYear: 'Black',
                 carPlate: '1234-ABCD',
                 carOdometer: '6700',
-                workingDays: 10,
                 total: 6000,
             },
             {
                 customerId: personnelUser.id,
-                installments: 5,
                 carMake: 'Honda',
                 carType: '2020 Civi',
                 carYear: 'White',
                 carPlate: '1234-ABCD',
                 carOdometer: '6700',
-                workingDays: 10,
                 total: 6000,
             },
         ]

@@ -21,15 +21,14 @@ const OrderPayments = require('./orderPayments.model');
 const insertOrder = async(
     data = { 
         customerId, 
-        installments,
         total, 
         carMake,
         carType,
         carYear,
         carPlate,
         carOdometer,
-        workingDays,
-        downPayment,
+        receiveDate,
+        warrantEnd,
     }
 ) => {
 

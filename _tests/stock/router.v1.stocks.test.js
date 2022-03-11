@@ -12,6 +12,10 @@ const productMigration0 = require('../../db_migrations/1641297582352_create_prod
 const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const Stock = require('../../stock/stock.model');
+const stockDAO = require('../../stock/stock.dao');
+
 
 const { app } = require('../../app');
 const v = 'v1';
@@ -27,7 +31,13 @@ const personnelData = {
     role: User.ROLE_PERSONNEL,
 }
 
-let personnelToken;
+const productData = {
+    name: 'Product 1',
+    sku: '123456',
+    description: 'Description 1',
+}
+
+let personnel, personnelToken, product;
 
 
 beforeAll( async () => {
@@ -35,44 +45,51 @@ beforeAll( async () => {
     // clear db
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     // migrate tables
     await userMigration0.up();
     await productMigration0.up();
+    await stockMigration0.up();
 
 
     const personnelEncryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
+    personnel = await userDAO.insert(data = {
         ...personnelData,
         password: personnelEncryptedPass,
     });     
     
     personnelToken = tokenator.generate({ userId: personnel.id });
+
+    product = await productDAO.insert(productData);
 });
 
 beforeEach( async () => {
-    await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
 
 });
 
 afterAll( async () => {
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await closePool();
 });
 
 
 it('when with valid data, will succeed', async() => {
 
-    const productData = {
-        name: 'Product 1',
-        sku: '123456',
-        description: 'Description 1',
+    const stockData = {
+        productId: product.id,
+        supplier: 'Some Supplier',
+        quantity: 120,
+        unitPrice: 300.5,
+        sellingPrice: 330,
     }
 
     const response = await request(app)
-        .post(`/${v}/products`)
+        .post(`/${v}/stocks`)
         .set('Authorization', `Bearer ${personnelToken}`)
-        .send(productData);
+        .send(stockData);
 
     // console.dir(response.body, { depth: null });
 
@@ -83,16 +100,18 @@ it('when with valid data, will succeed', async() => {
 
 it('when with required only data, will succeed', async() => {
 
-    const productData = {
-        name: 'Name 1',
-        sku: '1234',
-        description: 'Something here',
+    const stockData = {
+        productId: product.id,
+        supplier: 'Some Supplier',
+        quantity: 120,
+        unitPrice: 300.5,
+        sellingPrice: 330,
     }
 
     const response = await request(app)
-        .post(`/${v}/products`)
+        .post(`/${v}/stocks`)
         .set('Authorization', `Bearer ${personnelToken}`)
-        .send(productData);
+        .send(stockData);
 
     // console.dir(response.body, { depth: null });
 
@@ -101,19 +120,20 @@ it('when with required only data, will succeed', async() => {
 
 });
 
-it('when with no description data, will fail', async() => {
+it('when with no quantity and sellingPrice data, will fail', async() => {
 
-    const productData = {
-        name: 'Name',
-        sku: '1234',
-        // description: 100.54,
+    const stockData = {
+        productId: product.id,
+        personnelId: personnel.id,
+        supplier: 'Some Supplier',
+        unitPrice: 300.5,
     }
 
 
     const response = await request(app)
-        .post(`/${v}/products`)
+        .post(`/${v}/stocks`)
         .set('Authorization', `Bearer ${personnelToken}`)
-        .send(productData);
+        .send(stockData);
 
     // console.dir(response.body, { depth: null });
 
@@ -125,7 +145,7 @@ it('when with valid data but using customer account, will succeed', async() => {
 
     /// create customer first
     const customerData = {
-        email: 'mup.autoproduct@gmail.com',
+        email: 'mup.autostock@gmail.com',
         password: 'P@ssW0rd',
         firstName: 'Muphy',
         lastName: 'Tayag',
@@ -143,16 +163,18 @@ it('when with valid data but using customer account, will succeed', async() => {
     const token = tokenator.generate({ userId: customer.id });
  
 
-    const productData = {
-        name: 'Product 1',
-        sku: '123456',
-        description: 'Description 1',
+    const stockData = {
+        productId: product.id,
+        supplier: 'Some Supplier',
+        quantity: 120,
+        unitPrice: 300.5,
+        sellingPrice: 330,
     }
 
     const response = await request(app)
-        .post(`/${v}/products`)
+        .post(`/${v}/stocks`)
         .set('Authorization', `Bearer ${token}`)
-        .send(productData);
+        .send(stockData);
 
     // console.dir(response.body, { depth: null });
 

@@ -11,15 +11,14 @@ class Order {
         id, 
         customer_id,
         total,
-        installments,
         completed,
         car_make,
         car_type,
         car_year,
         car_plate,
         car_odometer,
-        working_days,
-        down_payment,
+        receive_date,
+        warranty_end,
         created_at,
         all_services = [],
         all_products = [],
@@ -30,15 +29,14 @@ class Order {
             id,  
             customerId: customer_id,
             total,
-            installments,
             completed,
             carMake: car_make,
             carType: car_type,
             carYear: car_year,
             carPlate: car_plate,
             carOdometer: car_odometer,
-            workingDays: working_days,
-            downPayment: down_payment,
+            receiveDate: receive_date,
+            warrantyEnd: warranty_end,
             createdAt: created_at,
             allServices: all_services.map((s) => OrderService.fromDB(s)),
             allProducts: all_products.map((p) => OrderProduct.fromDB(p)),
@@ -53,15 +51,14 @@ class Order {
         id,  
         customerId,
         total,
-        installments,
         completed,
         carMake,
         carType,
         carYear,
         carPlate,
         carOdometer,
-        workingDays,
-        downPayment,
+        receiveDate,
+        warrantyEnd,
         createdAt,
         allServices = [],
         allProducts = [],
@@ -71,57 +68,56 @@ class Order {
         this.id = id;
         this.customerId = customerId;
         this.total = total;
-        this.installments = installments;
         this.completed = completed;
         this.carMake = carMake;
         this.carType = carType;
         this.carYear = carYear;
         this.carPlate = carPlate;
         this.carOdometer = carOdometer;
-        this.workingDays = workingDays;
-        this.downPayment = downPayment;
+        this.receiveDate = receiveDate;
+        this.warrantyEnd = warrantyEnd;
         this.createdAt = createdAt;
         this.payments = payments;
         this.customer = customer;
         this.services = [];
 
 
-        // console.dir(allProducts, {depth: null});
-        let newTotal = 0;
-        for (const service of allServices) {
-            // console.log(service);
-            const formattedService = {
-                serviceId: service.serviceId,
-                price: service.price,
-                title: service.title,
-                products: [],
-            }
+        // // console.dir(allProducts, {depth: null});
+        // let newTotal = 0;
+        // for (const service of allServices) {
+        //     // console.log(service);
+        //     const formattedService = {
+        //         serviceId: service.serviceId,
+        //         price: service.price,
+        //         title: service.title,
+        //         products: [],
+        //     }
 
-            newTotal += parseFloat(service.price);
+        //     newTotal += parseFloat(service.price);
 
-            for (const product of allProducts) {
-                if (product.serviceId == service.serviceId) {
-                    formattedService.products.push({
-                        productId: product.productId,
-                        price: product.price,
-                        quantity: product.quantity,
-                        name: product.name,
-                    });
-                    newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
-                }
-            }
-            this.services.push(formattedService);
+        //     for (const product of allProducts) {
+        //         if (product.serviceId == service.serviceId) {
+        //             formattedService.products.push({
+        //                 productId: product.productId,
+        //                 price: product.price,
+        //                 quantity: product.quantity,
+        //                 name: product.name,
+        //             });
+        //             newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
+        //         }
+        //     }
+        //     this.services.push(formattedService);
 
 
-            let newTotalPayment = parseFloat(downPayment);
-            for (const pm of payments) {
-                newTotalPayment += parseFloat(pm.amount);
-            }
+        //     let newTotalPayment = parseFloat(downPayment);
+        //     for (const pm of payments) {
+        //         newTotalPayment += parseFloat(pm.amount);
+        //     }
 
-            // custom values
-            this.total = newTotal;
-            this.totalPayment = newTotalPayment;
-        }
+        //     // custom values
+        //     this.total = newTotal;
+        //     this.totalPayment = newTotalPayment;
+        // }
         
 
     }

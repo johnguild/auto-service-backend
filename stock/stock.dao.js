@@ -2,25 +2,28 @@ const { getPool } = require('../db/postgres');
 const pool = getPool();
 
 const { toSnakeCase } = require('../utils/string');
-const Product = require('./product.model');
+const Stock = require('./stock.model');
 
 
 
 /**
- * Insert a new instance of Product
+ * Insert a new instance of Stock
  * 
  * @param {*} data 
- * @returns {Product} Product?
+ * @returns {Stock} Stock?
  */
 const insert = async(
     data = {
-        name,
-        sku,
-        description,
+        productId,
+        personnelId,
+        supplier,
+        quantity,
+        unitPrice,
+        sellingPrice,
     }
 ) => {
 
-    let text = `INSERT INTO ${Product.tableName} `;
+    let text = `INSERT INTO ${Stock.tableName} `;
 
     const columns = [], values = [], valueIndexes = [];
     /// collect all variables need to build the query
@@ -44,25 +47,25 @@ const insert = async(
     // console.log(values);
     const res = await pool.query({ text, values });
 
-    return res.rows.length > 0 ? Product.fromDB(res.rows[0]) : null;
+    return res.rows.length > 0 ? Stock.fromDB(res.rows[0]) : null;
 }
 
 /**
- * Updates an instance of Product
+ * Updates an instance of Stock
  * 
  * @param {*} data 
  * @param {*} where 
- * @returns {Product} Array of Product
+ * @returns {Stock} Array of Stock
  */
 const update = async(
     data = {        
-        name,
-        sku,
-        description,
+        supplier,
+        quantity,
+        unitPrice,
+        sellingPrice,
     }, 
     where = {
         id,
-        sku,
     }
 ) => {
 
@@ -107,7 +110,7 @@ const update = async(
     });
      
     const text = `
-        UPDATE ${Product.tableName} 
+        UPDATE ${Stock.tableName} 
         SET ${updateString} 
         WHERE ${whereString}
         RETURNING *;`;
@@ -117,16 +120,16 @@ const update = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => Product.fromDB(u)) : [];
+        res.rows.map(u => Stock.fromDB(u)) : [];
 }
 
 
 const find = async(
     where = {
         id,    
-        name,
-        sku,
-        description,
+        productId,
+        personnelId,
+        supplier,
     },
     options = {
         limit: undefined,
@@ -169,7 +172,7 @@ const find = async(
     }
      
     const text = `
-        SELECT * FROM ${Product.tableName} 
+        SELECT * FROM ${Stock.tableName} 
         ${whereString} 
         ${optionString};`;
 
@@ -178,16 +181,17 @@ const find = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => Product.fromDB(u)) : [];
+        res.rows.map(u => Stock.fromDB(u)) : [];
 
 }
 
 
 const findLike = async(
     where = { 
-        name,
-        sku,
-        description,
+        supplier,
+        quantity,
+        unitPrice,
+        sellingPrice,
     },
     options = {
         limit: undefined,
@@ -230,7 +234,7 @@ const findLike = async(
     }
      
     const text = `
-        SELECT * FROM ${Product.tableName} 
+        SELECT * FROM ${Stock.tableName} 
         ${whereString} 
         ${optionString};`;
 
@@ -239,16 +243,16 @@ const findLike = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => Product.fromDB(u)) : [];
+        res.rows.map(u => Stock.fromDB(u)) : [];
 
 }
 
 const findCount = async(
     where = {
         id,    
-        name,
-        sku,
-        description,
+        productId,
+        personnelId,
+        supplier,
     }
 ) => {
 
@@ -277,7 +281,7 @@ const findCount = async(
 
     const text = `
         SELECT COUNT(*) as total 
-        FROM ${Product.tableName} 
+        FROM ${Stock.tableName} 
         ${whereString};`;
 
     // console.log(text);

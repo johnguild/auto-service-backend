@@ -8,16 +8,12 @@ class Product {
         name,
         sku,
         description,
-        stock,
-        price,
     }) {
         const instance = new this({
             id,  
             name,
             sku,
             description,
-            stock,
-            price,
         });
         return instance;
     }
@@ -28,15 +24,11 @@ class Product {
         name,
         sku,
         description,
-        stock,
-        price,
     }) {
         this.id = id;
         this.name = name;
         this.sku = sku;
         this.description = description;
-        this.stock = stock;
-        this.price = price;
     }
     
 }   

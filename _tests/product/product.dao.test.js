@@ -12,8 +12,6 @@ const product1Data = {
     name: 'Product 1',
     sku: '123456',
     description: 'Description 1',
-    stock: 12,
-    price: 100.5,
 }
 
 
@@ -54,8 +52,6 @@ describe('insert', () => {
         expect(res.rows[0].name).toBe(product1Data.name);
         expect(res.rows[0].sku).toBe(product1Data.sku);
         expect(res.rows[0].description).toBe(product1Data.description);
-        expect(parseFloat(res.rows[0].price)).toBe(product1Data.price);
-        expect(parseFloat(res.rows[0].stock)).toBe(product1Data.stock);
     });
 
     it('when creating with valid but without price, will succeed', async() => {
@@ -77,8 +73,6 @@ describe('insert', () => {
         expect(res.rows[0].name).toBe(product1Data.name);
         expect(res.rows[0].sku).toBe(product1Data.sku);
         expect(res.rows[0].description).toBe(product1Data.description);
-        expect(parseFloat(res.rows[0].price)).toBe(0.0);
-        expect(parseFloat(res.rows[0].stock)).toBe(product1Data.stock);
     });
 
     it('when creating with duplicate sku, will fail', async() => {
@@ -132,40 +126,6 @@ describe('update', () => {
 
     });
 
-    it('when updating price, discountedPrice, is_public by id, will succeed', async() => {
-        // create data first
-        const product = await productDAO.insert(product1Data);
-
-        // console.log(manager.id);
-
-        const newStock = 111;
-        const newPrice = 99.99;
-
-        let err = null;
-        try {
-            await productDAO.update(
-                data={
-                    stock: newStock,
-                    price: newPrice,
-                },
-                where={id: product.id}
-            );
-
-        } catch (error) {
-            err = error;
-            // console.log(error);
-        }
-        expect(err).toBeNull();
-
-        // assert values updated
-        const savedProduct = await pool.query(`SELECT * FROM ${Product.tableName};`);
-        expect(savedProduct.rows.length).toBe(1);
-        expect(savedProduct.rows[0].id).toBe(product.id);
-        expect(parseFloat(savedProduct.rows[0].stock)).toBe(newStock);
-        expect(parseFloat(savedProduct.rows[0].price)).toBe(newPrice);
-
-    });
-
 });
 
 describe('find', () => {
@@ -177,15 +137,11 @@ describe('find', () => {
                 name: 'Product 1',
                 sku: '123456',
                 description: 'Description 1',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 2',
                 sku: '0003123123',
                 description: 'Description 2',
-                stock: 12,
-                price: 100.5,
             },
         ]
 
@@ -220,22 +176,16 @@ describe('find', () => {
                 name: 'Product 1',
                 sku: '123456',
                 description: 'Description 1',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 2',
                 sku: '0003123123',
                 description: 'Description 2',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 3',
                 sku: '000414444',
                 description: 'Description 3',
-                stock: 120,
-                price: 2000,
             },
         ]
 
@@ -270,22 +220,16 @@ describe('find', () => {
                 name: 'Product 1',
                 sku: '123456',
                 description: 'Description 1',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 2',
                 sku: '0003123123',
                 description: 'Description 2',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 3',
                 sku: '000414444',
                 description: 'Description 3',
-                stock: 120,
-                price: 2000,
             },
         ]
 
@@ -320,22 +264,16 @@ describe('find', () => {
                 name: 'Product 1',
                 sku: '123456',
                 description: 'Description 1',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 2',
                 sku: '0003123123',
                 description: 'Description 2',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 3',
                 sku: '000414444',
                 description: 'Description 3',
-                stock: 120,
-                price: 2000,
             },
         ]
 
@@ -373,22 +311,16 @@ describe('findLike', () => {
                 name: 'Product 1',
                 sku: '123456',
                 description: 'Description 1',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 2',
                 sku: '0003123123',
                 description: 'Description 2',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 3',
                 sku: '000767676',
                 description: 'Description 3',
-                stock: 12,
-                price: 200.5,
             },
         ]
 
@@ -425,22 +357,16 @@ describe('findLike', () => {
                 name: 'Product 1',
                 sku: '123456',
                 description: 'Description 1',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 2',
                 sku: '0003123123',
                 description: 'Description 2',
-                stock: 12,
-                price: 100.5,
             },
             {
                 name: 'Product 3',
                 sku: '000767676',
                 description: 'Sample 3',
-                stock: 12,
-                price: 200.5,
             },
         ]
 

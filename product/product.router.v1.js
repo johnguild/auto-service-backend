@@ -43,8 +43,6 @@ const apiVersion = 'v1';
                     name: req.body.name,
                     sku: req.body.sku,
                     description: req.body.description,
-                    stock: req.body.stock,
-                    price: req.body.price,
                 }
             )
 
@@ -112,8 +110,6 @@ const apiVersion = 'v1';
                     name: req.body.name,
                     sku: req.body.sku,
                     description: req.body.description,
-                    stock: req.body.stock,
-                    price: req.body.price,
                 },
                 where= { id: s.id }
             )
