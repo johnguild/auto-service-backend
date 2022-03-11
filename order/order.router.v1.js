@@ -13,6 +13,7 @@ const validationCheck = require('../middlewares/validationCheck');
 const orderDAO = require('./order.dao');
 const serviceDAO = require('../service/service.dao');
 const productDAO = require('../product/product.dao');
+const stockDAO = require('../stock/stock.dao');
 const userDAO = require('../user/user.dao');
 const Order = require('./order.model');
 const User = require('../user/user.model');
@@ -46,32 +47,61 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
-            let total = 0;
+            /// check if stocks are available
+            const tmpServiceProductIds = [];
+            const tmpServiceProductQuantities = [];
             if (req.body.services.length > 0) {
-                let totalIndex = 0;
                 for (const bodyService of req.body.services) {
-                    total += parseFloat(bodyService.price);
-                    if (req.body.services[totalIndex].products.length > 0) {
-                        for (const bodyProduct of req.body.services[totalIndex].products) {
-                            total += parseFloat(bodyProduct.price) * parseFloat(bodyProduct.quantity);
+                    if (bodyService.products.length > 0) {
+                        for (const bodyProduct of bodyService.products) {
+                            // console.log(bodyProduct);
+                            // console.log(tmpServiceProductIds.includes(bodyProduct.id));
+                            if (tmpServiceProductIds.includes(bodyProduct.id)) {
+                                const indexOf = tmpServiceProductIds.indexOf(bodyProduct.id);
+                                tmpServiceProductQuantities[indexOf] += parseInt(bodyProduct.quantity);
+                            } else {
+                                // console.log('add');
+                                tmpServiceProductIds.push(bodyProduct.id);
+                                tmpServiceProductQuantities.push(parseInt(bodyProduct.quantity));
+                            }
+                            // total += parseFloat(bodyProduct.price) * parseFloat(bodyProduct.quantity);
                         }
                     }
-                    totalIndex++;
                 }
             }
+
+            let hasInsufficientStock = false;
+            for (const productId of tmpServiceProductIds) {
+                const indexOf = tmpServiceProductIds.indexOf(productId);
+                const totalQuantity = tmpServiceProductQuantities[indexOf];
+
+                let stockTotal = await stockDAO.findTotalQuantity(where = {productId: productId});
+
+                // console.log(productId, totalQuantity, stockTotal);
+                if (totalQuantity > stockTotal) {
+                    hasInsufficientStock = true;
+                }
+            }
+
+            if (hasInsufficientStock) {
+                return req.api.status(400).errors([
+                    'Inventory quantity exceeds Stocks available!'
+                ]).send();
+            }
+
+            // console.log(tmpServiceProductIds, tmpServiceProductQuantities);
 
             const order = await orderDAO.insertOrder(
                 data = {
                     customerId: users[0].id,
-                    installments: req.body.installments,
                     carMake: req.body.carMake,
                     carType: req.body.carType,
                     carYear: req.body.carYear,
                     carPlate: req.body.carPlate,
                     carOdometer: req.body.carOdometer,
-                    workingDays: req.body.workingDays,
-                    downPayment: req.body.downPayment,
-                    total// temp
+                    receiveDate: req.body.receiveDate,
+                    warrantyEnd: req.body.warrantyEnd,
+                    total: 0// temp
                 }
             );
 
@@ -103,6 +133,56 @@ const apiVersion = 'v1';
                     }
     
                     index++;
+                }
+            }
+
+            if (req.body.mechanics.length > 0) {
+                for (const bodyMechanic of req.body.mechanics) {
+                    await orderDAO.insertOrderMechanic(
+                        data = {
+                            orderId: order.id,
+                            mechanicId: bodyMechanic.id,
+                        }
+                    );
+                }
+            }
+
+            // console.log(`deduct stock`);
+            for (const productId of tmpServiceProductIds) {
+                const indexOf = tmpServiceProductIds.indexOf(productId);
+                let totalQuantity = tmpServiceProductQuantities[indexOf];
+
+                const stocks = await stockDAO.find(where = {productId: productId});
+                for (const stock of stocks) {
+                    if (totalQuantity == 0) {
+                        continue;
+                    }
+                    const stockQty = parseInt(stock.quantity);
+                    // console.log(stockQty, totalQuantity, stock.id);
+                    if (totalQuantity <= stockQty ) {
+                        // console.log(`less than available stocks`);
+                        await stockDAO.update(
+                            data = {
+                                quantity: (stockQty - totalQuantity),
+                            },
+                            where = {
+                                id: stock.id,
+                            }
+                        );
+                        totalQuantity = 0;
+                    } else {
+                        // console.log(`greater than available stocks`);
+                        await stockDAO.update(
+                            data = {
+                                quantity: 0,
+                            },
+                            where = {
+                                id: stock.id,
+                            }
+                        );
+                        totalQuantity -= stockQty;
+                    }
+                 
                 }
             }
 
@@ -410,6 +490,7 @@ const apiVersion = 'v1';
             );
 
             // console.log(total);
+            // console.dir(allOrders, {depth:null});
 
             return req.api.status(200)
                 .page(req.query.page)

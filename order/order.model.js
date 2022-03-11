@@ -2,6 +2,7 @@ const User = require('../user/user.model');
 const OrderPayment = require("./orderPayments.model");
 const OrderProduct = require("./orderProducts.model");
 const OrderService = require("./orderServices.model");
+const OrderMechanic = require("./orderMechanics.model");
 
 class Order {
 
@@ -23,6 +24,7 @@ class Order {
         all_services = [],
         all_products = [],
         all_payments = [],
+        all_mechanics = [],
         customer,
     }) {
         const instance = new this({
@@ -41,6 +43,7 @@ class Order {
             allServices: all_services.map((s) => OrderService.fromDB(s)),
             allProducts: all_products.map((p) => OrderProduct.fromDB(p)),
             payments: all_payments.map((p) => OrderPayment.fromDB(p)),
+            mechanics: all_mechanics.map((p) => OrderMechanic.fromDB(p)),
             customer: User.fromDB({ ...customer }),
         });
         return instance;
@@ -63,6 +66,7 @@ class Order {
         allServices = [],
         allProducts = [],
         payments = [],
+        mechanics = [],
         customer,
     }) {
         this.id = id;
@@ -78,46 +82,47 @@ class Order {
         this.warrantyEnd = warrantyEnd;
         this.createdAt = createdAt;
         this.payments = payments;
+        this.mechanics = mechanics;
         this.customer = customer;
         this.services = [];
 
 
-        // // console.dir(allProducts, {depth: null});
+        // console.dir(allProducts, {depth: null});
         // let newTotal = 0;
-        // for (const service of allServices) {
-        //     // console.log(service);
-        //     const formattedService = {
-        //         serviceId: service.serviceId,
-        //         price: service.price,
-        //         title: service.title,
-        //         products: [],
-        //     }
+        for (const service of allServices) {
+            // console.log(service);
+            const formattedService = {
+                serviceId: service.serviceId,
+                price: service.price,
+                title: service.title,
+                products: [],
+            }
 
-        //     newTotal += parseFloat(service.price);
+            // newTotal += parseFloat(service.price);
 
-        //     for (const product of allProducts) {
-        //         if (product.serviceId == service.serviceId) {
-        //             formattedService.products.push({
-        //                 productId: product.productId,
-        //                 price: product.price,
-        //                 quantity: product.quantity,
-        //                 name: product.name,
-        //             });
-        //             newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
-        //         }
-        //     }
-        //     this.services.push(formattedService);
+            for (const product of allProducts) {
+                if (product.serviceId == service.serviceId) {
+                    formattedService.products.push({
+                        productId: product.productId,
+                        price: product.price,
+                        quantity: product.quantity,
+                        name: product.name,
+                    });
+                    // newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
+                }
+            }
+            this.services.push(formattedService);
 
 
-        //     let newTotalPayment = parseFloat(downPayment);
-        //     for (const pm of payments) {
-        //         newTotalPayment += parseFloat(pm.amount);
-        //     }
+            // let newTotalPayment = parseFloat(downPayment);
+            // for (const pm of payments) {
+            //     newTotalPayment += parseFloat(pm.amount);
+            // }
 
-        //     // custom values
-        //     this.total = newTotal;
-        //     this.totalPayment = newTotalPayment;
-        // }
+            // // custom values
+            // this.total = newTotal;
+            // this.totalPayment = newTotalPayment;
+        }
         
 
     }

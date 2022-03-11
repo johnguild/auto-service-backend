@@ -4,8 +4,6 @@ const validate = () => {
     return [
         body('customerId')
             .isUUID().withMessage('Customer is invalid'), 
-        body('installments')
-            .isNumeric().withMessage('Installment must be a number'),
         body('carMake')
             .isString().withMessage('Car Make is Invalid')
             .isLength({ min: 1, max: 300 }).withMessage('Car Make must be 1-300 characters only'),
@@ -21,10 +19,10 @@ const validate = () => {
         body('carOdometer')
             .isString().withMessage('Car Odometer is Invalid')
             .isLength({ min: 1, max: 300 }).withMessage('Car Odometer must be 1-300 characters only'),
-        body('workingDays')
-            .isInt().withMessage('Working Days is Invalid'),
-        body('downPayment')
-            .isNumeric().withMessage('Down Payment is Invalid'),
+        body('receiveDate')
+            .isISO8601().withMessage('receiveDate is Invalid'),
+        body('warrantyEnd')
+            .isISO8601().withMessage('WarranyEnd is Invalid'),
         body('services')
             .default([])
             .isArray().withMessage('Services must be an array of object'), 
@@ -41,6 +39,11 @@ const validate = () => {
             .isNumeric().withMessage('Product price are invalid'), 
         body('services.*.products.*.quantity')
             .isNumeric().withMessage('Product quantity are invalid'), 
+        body('mechanics')
+            .default([])
+            .isArray().withMessage('Mechanics must be an array of object'), 
+        body('mechanics.*.id')
+            .isUUID().withMessage('Mechanics Id are invalid'), 
    ]
 }
 

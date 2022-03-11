@@ -4,9 +4,12 @@ const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
 
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
-
 const Product = require('../../product/product.model');
 const productDAO = require('../../product/product.dao');
+
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const Stock = require('../../stock/stock.model');
+const stockDAO = require('../../stock/stock.dao');
 
 const product1Data = {
     name: 'Product 1',
@@ -19,16 +22,20 @@ beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
     await productMigration0.down();
+    await stockMigration0.down();
     // migrate tables
     await productMigration0.up();
+    await stockMigration0.up();
 });
 
 beforeEach( async() => {
     await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
 });
 
 afterAll( async() => {
     await productMigration0.down();
+    await stockMigration0.down();
     await closePool();
 });
 

@@ -292,11 +292,31 @@ const findCount = async(
 
 }
 
+const findTotalQuantity = async(
+    where = {
+        productId,
+    }
+) => {
+
+    const text = `
+        SELECT COALESCE(SUM(quantity), 0) as total FROM ${Stock.tableName} 
+        WHERE product_id = '${where.productId}' 
+            AND quantity > 0;`;
+
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+    // console.log(res);
+    return res.rows.length > 0 ? res.rows[0].total : 0.0;
+}
 
 module.exports = {
     insert,
     update,
     find,
     findLike,
-    findCount
+    findCount,
+    findTotalQuantity,
 }

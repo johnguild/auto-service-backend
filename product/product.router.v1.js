@@ -167,7 +167,7 @@ const apiVersion = 'v1';
                 .send(products);
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

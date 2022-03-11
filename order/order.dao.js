@@ -5,11 +5,12 @@ const { toSnakeCase } = require('../utils/string');
 const User = require('../user/user.model');
 const Service = require('../service/service.model');
 const Product = require('../product/product.model');
+const Mechanic = require('../mechanic/mechanic.model');
 const Order = require('./order.model');
 const OrderServices = require('./orderServices.model');
 const OrderProducts = require('./orderProducts.model');
 const OrderPayments = require('./orderPayments.model');
-
+const OrderMechanics = require('./orderMechanics.model');
 
 
 /**
@@ -59,7 +60,6 @@ const insertOrder = async(
     return res.rows.length > 0 ? Order.fromDB(res.rows[0]) : null;
 }
 
-
 /**
  * Insert a new instance of OrderServices
  * 
@@ -100,7 +100,6 @@ const insertOrder = async(
 
     return res.rows.length > 0 ? OrderServices.fromDB(res.rows[0]) : null;
 }
-
 
 /**
  * Insert a new instance of OrderProducts
@@ -145,7 +144,6 @@ const insertOrder = async(
     return res.rows.length > 0 ? OrderProducts.fromDB(res.rows[0]) : null;
 }
 
-
 /**
  * Insert a new instance of OrderPayments
  * 
@@ -187,6 +185,45 @@ const insertOrder = async(
     return res.rows.length > 0 ? OrderPayments.fromDB(res.rows[0]) : null;
 }
 
+/**
+ * Insert a new instance of OrderMechanics
+ * 
+ * @param {*} data 
+ * @returns {OrderMechanics} OrderMechanics?
+ */
+ const insertOrderMechanic = async(
+    data = {
+        orderId, 
+        mechanicId,
+    }
+) => {
+
+    let text = `INSERT INTO ${OrderMechanics.tableName} `;
+
+    const columns = [], values = [], valueIndexes = [];
+    /// collect all variables need to build the query
+    let i = 1;
+    for (const attr in data) {
+        if (data[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(data[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    // end text
+    text += `(${columns.toString()}) 
+        VALUES (${valueIndexes.toString()}) 
+        RETURNING *;`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    return res.rows.length > 0 ? OrderMechanics.fromDB(res.rows[0]) : null;
+}
 
 const updateOrder = async(
     data = {
@@ -303,7 +340,8 @@ const find = async(
             ) as customer, 
             CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.srv) END as all_services,
             CASE WHEN count(pr) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT pr.prdct) END as all_products,
-            CASE WHEN count(py) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT py.pymnt) END as all_payments 
+            CASE WHEN count(py) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT py.pymnt) END as all_payments,
+            CASE WHEN count(me) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT me.mechanic) END as all_mechanics  
         FROM ${Order.tableName} as o 
         LEFT OUTER JOIN (
             SELECT s.order_id, jsonb_build_object('service_id', s.service_id, 'title', 
@@ -323,6 +361,12 @@ const find = async(
                 'date_time', p.date_time) as pymnt  
             FROM ${OrderPayments.tableName} as p 
         ) as py ON py.order_id = o.id 
+        LEFT OUTER JOIN (
+            SELECT m.order_id, jsonb_build_object('id', m.id, 'mechanic_id', m.mechanic_id, 
+                'full_name', (SELECT CONCAT(mm.first_name, ' ', mm.last_name) FROM ${Mechanic.tableName} as mm WHERE mm.id = m.mechanic_id ) 
+                ) as mechanic   
+            FROM ${OrderMechanics.tableName} as m 
+        ) as me ON me.order_id = o.id  
         ${whereString} `;
     text += 'GROUP BY o.id ';
     text += 'ORDER BY o.completed ASC ';
@@ -338,7 +382,6 @@ const find = async(
     return res.rows.length > 0 ? 
         res.rows.map(u => Order.fromDB(u)) : [];
 }
-
 
 const findCount = async(
     where = {
@@ -390,6 +433,7 @@ module.exports = {
     insertOrderService,
     insertOrderProduct,
     insertOrderPayment,
+    insertOrderMechanic,
     updateOrder,
     find,
     findCount

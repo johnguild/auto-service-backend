@@ -13,6 +13,10 @@ const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
 
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const Stock = require('../../stock/stock.model');
+const stockDAO = require('../../stock/stock.dao');
+
 const { app } = require('../../app');
 const v = 'v1';
 const personnelData = {
@@ -35,9 +39,11 @@ beforeAll( async () => {
     // clear db
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     // migrate tables
     await userMigration0.up();
     await productMigration0.up();
+    await stockMigration0.up();
 
 
     const personnelEncryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
@@ -52,12 +58,14 @@ beforeAll( async () => {
 
 beforeEach( async () => {
     await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
 
 });
 
 afterAll( async () => {
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await closePool();
 });
 

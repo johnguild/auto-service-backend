@@ -7,23 +7,28 @@ const pool = getPool();
 const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
 const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
 const orderMigration0 = require('../../db_migrations/1642765556944_create_orders_table');
 const orderServicesMigration0 = require('../../db_migrations/1642766434532_create_order_services_table');
 const orderProductsMigration0 = require('../../db_migrations/1642766700669_create_order_products_table');
 const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
+const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
 
 const User = require('../../user/user.model');
 const Service = require('../../service/service.model');
 const Product = require('../../product/product.model');
+const Mechanic = require('../../mechanic/mechanic.model');
 const Order = require('../../order/order.model');
 const OrderServices = require('../../order/orderServices.model');
 const OrderProducts = require('../../order/orderProducts.model');
 const OrderPayments = require('../../order/orderPayments.model');
+const OrderMechanics = require('../../order/orderMechanics.model');
 
 const userDAO = require('../../user/user.dao');
 const orderDAO = require('../../order/order.dao');
 const serviceDAO = require('../../service/service.dao');
 const productDAO = require('../../product/product.dao');
+const mechanicDAO = require('../../mechanic/mechanic.dao');
 
 const managerData = {
     email: 'manager.autoservice@gmail.com',
@@ -59,8 +64,16 @@ const customerData = {
     role: User.ROLE_CUSTOMER,
 }
 
+const mechanicData = {
+    mobile: '639359372676',
+    firstName: 'Test Robin',
+    lastName: 'Perez',
+    birthDay: new Date(Date.now()).toISOString(),
+    gender: 'Male',
+}
 
-let managerUser, personnelUser, customerUser;
+
+let managerUser, personnelUser, customerUser, mechanic;
 
 const services = [];
 
@@ -71,18 +84,22 @@ beforeAll( async() => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await mechanicMigration0.down();
     await orderMigration0.down();
     await orderServicesMigration0.down();
     await orderProductsMigration0.down();
     await orderPaymentsMigration0.down();
+    await orderMechanicsMigration0.down();
     // clear db
     await userMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
+    await mechanicMigration0.up();
     await orderMigration0.up();
     await orderServicesMigration0.up();
     await orderProductsMigration0.up();
     await orderPaymentsMigration0.up();
+    await orderMechanicsMigration0.up();
 
 
     /// create users
@@ -138,6 +155,9 @@ beforeAll( async() => {
         const serviceInstance = await serviceDAO.insert(service);
         services.push(serviceInstance);
     }
+
+    // create mechanic
+    mechanic = await mechanicDAO.insert(mechanicData);
 });
 
 beforeEach( async() => {
@@ -145,16 +165,19 @@ beforeEach( async() => {
     await pool.query(`DELETE FROM ${OrderServices.tableName};`);
     await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
     await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
+    await pool.query(`DELETE FROM ${OrderMechanics.tableName};`);
 });
 
 afterAll( async() => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await mechanicMigration0.down();
     await orderMigration0.down();
     await orderServicesMigration0.down();
     await orderProductsMigration0.down();
     await orderPaymentsMigration0.down();
+    await orderMechanicsMigration0.down();
     await closePool();
 });
 
@@ -264,9 +287,9 @@ describe('insertOrderProducts', () => {
             name: 'Product 1',
             sku: '123456',
             description: 'Description 1',
-            stock: 12,
-            price: 100.5,
         });
+        const productPrice = 333;
+        const productQuantity = 2;
 
 
         let orderProduct;
@@ -277,8 +300,8 @@ describe('insertOrderProducts', () => {
                     orderId: order.id, 
                     serviceId: service.id,
                     productId: product.id, 
-                    price: product.price, 
-                    quantity: 1,
+                    price: productPrice, 
+                    quantity: productQuantity,
                 }
             );
 
@@ -290,7 +313,8 @@ describe('insertOrderProducts', () => {
         expect(orderProduct.orderId).toBe(order.id);
         expect(orderProduct.serviceId).toBe(service.id);
         expect(orderProduct.productId).toBe(product.id);
-        expect(orderProduct.price).toBe(product.price);
+        expect(orderProduct.price).toBe(productPrice.toString());
+        expect(orderProduct.quantity).toBe(productQuantity.toString());
     });
 
 });
@@ -332,6 +356,41 @@ describe('insertOrderPayments', () => {
     });
 
 });
+
+describe('insertOrderMechanics', () => {
+
+    it('when creating with valid and complete data, will succeed', async() => {
+
+        const order = await orderDAO.insertOrder({
+            customerId: customerUser.id,
+            total: 1200,
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+        });
+
+        const mechanicData = {
+            orderId: order.id, 
+            mechanicId: mechanic.id,
+        }
+
+        let orderMechanic;
+        let err = null;
+        try {
+            orderMechanic = await orderDAO.insertOrderMechanic(mechanicData);
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        expect(orderMechanic.orderId).toBe(mechanicData.orderId);
+        expect(orderMechanic.mechanicId).toBe(mechanicData.mechanicId);
+    });
+
+})
 
 describe('updateOrder', () => {
 
@@ -439,6 +498,105 @@ describe('find', () => {
                     {
                         orderId: o.id,
                         serviceId: services[0].id
+                    }
+                )
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+        let orders;
+        let err = null;
+        try {
+            orders = await orderDAO.find( 
+                where= {
+                    customerId: customerUser.id,
+                },
+                opt= {
+                    limit: 20,
+                    skip: 0,
+                } 
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(orders, {depth: null});
+
+        expect(orders.length).toBe(2);
+
+    });
+
+
+    it('when finding by customerId with mechanic, will succeed', async() => {
+
+
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+            {
+                customerId: personnelUser.id,
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const data of orderData) {
+            const o = await orderDAO.insertOrder(data);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+
+
+                await orderDAO.insertOrderMechanic(
+                    {
+                        orderId: o.id,
+                        mechanicId: mechanic.id
                     }
                 )
             } else {

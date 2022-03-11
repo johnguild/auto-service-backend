@@ -3,6 +3,7 @@ const pool = getPool();
 
 const { toSnakeCase } = require('../utils/string');
 const Product = require('./product.model');
+const Stock = require('../stock/stock.model');
 
 
 
@@ -150,7 +151,7 @@ const find = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'AND ' : ''; 
-        whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
+        whereString += `${prefix}p.${col} = ${valueIndexes[ind]} `;
     });
 
     if (whereString.trim() != '') {
@@ -169,8 +170,18 @@ const find = async(
     }
      
     const text = `
-        SELECT * FROM ${Product.tableName} 
+        SELECT p.*, 
+            CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.stock) END as stocks  
+        FROM ${Product.tableName} as p 
+        LEFT OUTER JOIN (
+            SELECT s.product_id, jsonb_build_object('id', s.id, 'quantity', s.quantity, 
+                'supplier', s.supplier, 'unit_price', s.unit_price, 'selling_price', s.selling_price) 
+                as stock  
+            FROM ${Stock.tableName} as s 
+            WHERE s.quantity > 0  
+        ) as ss ON ss.product_id = p.id 
         ${whereString} 
+        GROUP BY p.id  
         ${optionString};`;
 
     // console.log(text);
@@ -211,7 +222,7 @@ const findLike = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'OR ' : ''; 
-        whereString += `${prefix}${col} ILIKE ${valueIndexes[ind]} `;
+        whereString += `${prefix}p.${col} ILIKE ${valueIndexes[ind]} `;
     });
 
     if (whereString.trim() != '') {
@@ -230,8 +241,18 @@ const findLike = async(
     }
      
     const text = `
-        SELECT * FROM ${Product.tableName} 
+        SELECT p.*,
+            CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.stock) END as stocks 
+        FROM ${Product.tableName} as p 
+        LEFT OUTER JOIN (
+            SELECT s.product_id, jsonb_build_object('id', s.id, 'quantity', s.quantity, 
+                'supplier', s.supplier, 'unit_price', s.unit_price, 'selling_price', s.selling_price) 
+                as stock  
+            FROM ${Stock.tableName} as s 
+            WHERE s.quantity > 0  
+        ) as ss ON ss.product_id = p.id 
         ${whereString} 
+        GROUP BY p.id  
         ${optionString};`;
 
     // console.log(text);

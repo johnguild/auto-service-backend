@@ -12,6 +12,12 @@ const productMigration0 = require('../../db_migrations/1641297582352_create_prod
 const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
+
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const Stock = require('../../stock/stock.model');
+const stockDAO = require('../../stock/stock.dao');
+
+
 const { app } = require('../../app');
 const v = 'v1';
 
@@ -37,8 +43,7 @@ const personnelData = {
     role: User.ROLE_PERSONNEL,
 }
 
-let managerToken;
-let personnelToken;
+let managerToken, personnelToken, personnel;
 
 
 beforeAll( async () => {
@@ -46,9 +51,11 @@ beforeAll( async () => {
     // clear db
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     // migrate tables
     await userMigration0.up();
     await productMigration0.up();
+    await stockMigration0.up();
 
 
     const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
@@ -62,7 +69,7 @@ beforeAll( async () => {
 
 
     const personnelEncryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
-    const personnel = await userDAO.insert(data = {
+    personnel = await userDAO.insert(data = {
         ...personnelData,
         password: personnelEncryptedPass,
     });     
@@ -72,12 +79,14 @@ beforeAll( async () => {
 
 beforeEach( async () => {
     await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
 
 });
 
 afterAll( async () => {
     await userMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await closePool();
 });
 
@@ -180,6 +189,76 @@ it('when getting using personnel account, will succeed', async() => {
 
 });
 
+it('when getting with stocks, will succeed', async() => {
+
+    const productData = [
+        {
+            name: 'Product 1',
+            sku: '000001',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 2',
+            sku: '000002',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 3',
+            sku: '000003',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 4',
+            sku: '000004',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 5',
+            sku: '000005',
+            description: 'Description 1',
+        },
+        
+    ];
+
+    let index = 0;
+    for (const p of productData) {
+        const prod = await productDAO.insert(p);
+
+        if (index < 3) {
+            await stockDAO.insert({
+                productId: prod.id,
+                personnelId: personnel.id,
+                supplier: 'Test Supplier',
+                quantity: index == 0 ? 0 : 100,
+                unitPrice: 320,
+                sellingPrice: 390.5,
+            });
+
+            await stockDAO.insert({
+                productId: prod.id,
+                personnelId: personnel.id,
+                supplier: 'Test Supplier',
+                quantity: index == 2 ? 0 : 200,
+                unitPrice: 60,
+                sellingPrice: 90.5,
+            });
+        }
+        index++;
+    }
+
+
+    const response = await request(app)
+        .get(`/${v}/products`)
+        .set('Authorization', `Bearer ${personnelToken}`)
+        .send();
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.length).toBe(productData.length);
+
+});
 
 it('when getting with page and limit, will succeed', async() => {
 
