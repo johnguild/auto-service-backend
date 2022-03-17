@@ -8,6 +8,7 @@ const up = async() => {
         .query(`CREATE TABLE ${Cash.tableName} (
             id uuid DEFAULT uuid_generate_v4 (),
             amount NUMERIC DEFAULT 0.0, 
+            purpose VARCHAR, 
             created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, 
             PRIMARY KEY(id)
         );`);

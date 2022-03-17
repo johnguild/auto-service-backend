@@ -10,6 +10,10 @@ class Product {
         name,
         sku,
         description, 
+        car_make,
+        car_type,
+        car_year,
+        car_part,
         stocks = []
     }) {
         const instance = new this({
@@ -17,6 +21,10 @@ class Product {
             name,
             sku,
             description,
+            carMake: car_make,
+            carType: car_type,
+            carYear: car_year,
+            carPart: car_part,
             stocks: stocks.map((s) => Stock.fromDB(s)),
         });
         return instance;
@@ -28,12 +36,20 @@ class Product {
         name,
         sku,
         description,
+        carMake,
+        carType,
+        carYear,
+        carPart,
         stocks = [],
     }) {
         this.id = id;
         this.name = name;
         this.sku = sku;
         this.description = description;
+        this.carMake = carMake;
+        this.carType = carType;
+        this.carYear = carYear;
+        this.carPart = carPart;
         this.stocks = stocks;
         this.totalStocks = 0;
 

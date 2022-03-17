@@ -35,8 +35,7 @@ const ClassName = require('../className/className.model.js');
 
         
 const up = async() => {
-    const request = await mkReq();
-    return await request
+    return await pool
         .query(\`CREATE TABLE \${ClassName.tableName} (
             id uuid DEFAULT uuid_generate_v4 (),
             varchar_name VARCHAR, 
@@ -47,8 +46,7 @@ const up = async() => {
 }
 
 const down = async() => {
-    const request = await mkReq();
-    return await request
+    return await pool
         .query(\`DROP TABLE IF EXISTS \${ClassName.tableName}; \`);
 }
 

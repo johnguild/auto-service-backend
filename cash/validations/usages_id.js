@@ -8,9 +8,9 @@ const validate = () => {
             .isNumeric()
                 .withMessage("Amount must be a digit"),
         body('purpose')
-            .isLength({ min: 1, max: 300 }).withMessage('Purpose is too short')
+            .isLength({ min: 1, max: 300 }).withMessage('Description is too short')
             .matches("^[a-zA-Z0-9 ]+$", "i")
-                .withMessage("Purpose must be atleast 1 characters, and can have Alphanumeric characters and spaces."),
+                .withMessage("Description must be atleast 1 characters, and can have Alphanumeric characters and spaces."),
    ]
 }
 

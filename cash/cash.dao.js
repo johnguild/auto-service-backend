@@ -15,6 +15,7 @@ const Cash = require('./cash.model');
 const insert = async(
     data = {
         amount,
+        purpose,
     }
 ) => {
 
@@ -54,7 +55,8 @@ const insert = async(
  */
 const update = async(
     data = {
-        amount
+        amount,
+        purpose,
     }, 
     where = {
         id,

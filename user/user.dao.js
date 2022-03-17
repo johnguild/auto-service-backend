@@ -22,6 +22,10 @@ const insert = async(
         gender, 
         birthDay,
         role,
+        companyName,
+        companyNumber,
+        companyAddress,
+        companyTin,
     }
 ) => {
 
@@ -69,6 +73,10 @@ const update = async(
         gender, 
         birthDay,
         isDisabled,
+        companyName,
+        companyNumber,
+        companyAddress,
+        companyTin,
     }, 
     where = {
         id,
@@ -139,6 +147,10 @@ const find = async(
         mobile,
         role,
         isDisabled,
+        companyName,
+        companyNumber,
+        companyAddress,
+        companyTin,
     },
     options = {
         limit: undefined,
@@ -204,6 +216,10 @@ const findCount = async(
         mobile,
         role,
         isDisabled,
+        companyName,
+        companyNumber,
+        companyAddress,
+        companyTin,
     }
 ) => {
 

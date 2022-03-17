@@ -18,6 +18,10 @@ const insert = async(
         name,
         sku,
         description,
+        carMake,
+        carType,
+        carYear,
+        carPart,
     }
 ) => {
 
@@ -60,6 +64,10 @@ const update = async(
         name,
         sku,
         description,
+        carMake,
+        carType,
+        carYear,
+        carPart,
     }, 
     where = {
         id,
@@ -128,6 +136,10 @@ const find = async(
         name,
         sku,
         description,
+        carMake,
+        carType,
+        carYear,
+        carPart,
     },
     options = {
         limit: undefined,
@@ -199,6 +211,10 @@ const findLike = async(
         name,
         sku,
         description,
+        carMake,
+        carType,
+        carYear,
+        carPart,
     },
     options = {
         limit: undefined,
@@ -270,6 +286,10 @@ const findCount = async(
         name,
         sku,
         description,
+        carMake,
+        carType,
+        carYear,
+        carPart,
     }
 ) => {
 

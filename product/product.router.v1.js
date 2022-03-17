@@ -43,8 +43,14 @@ const apiVersion = 'v1';
                     name: req.body.name,
                     sku: req.body.sku,
                     description: req.body.description,
+                    carMake: req.body.carMake,
+                    carType: req.body.carType,
+                    carYear: req.body.carYear,
+                    carPart: req.body.carPart,
                 }
             )
+
+            // console.log(product);
 
             return req.api.status(200)
                 .send(product);
@@ -110,6 +116,10 @@ const apiVersion = 'v1';
                     name: req.body.name,
                     sku: req.body.sku,
                     description: req.body.description,
+                    carMake: req.body.carMake,
+                    carType: req.body.carType,
+                    carYear: req.body.carYear,
+                    carPart: req.body.carPart,
                 },
                 where= { id: s.id }
             )
@@ -158,7 +168,7 @@ const apiVersion = 'v1';
                 where= {}
             );
 
-            // console.log(total);
+            // console.log(products);
 
             return req.api.status(200)
                 .page(req.query.page)

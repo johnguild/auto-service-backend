@@ -55,6 +55,7 @@ const apiVersion = 'v1';
 
             const cash = await cashDAO.insert(data = {
                 amount: req.body.amount,
+                purpose: req.body.purpose,
             });
 
             return req.api.status(200)
@@ -111,6 +112,7 @@ const apiVersion = 'v1';
             const updatedUsers = await cashDAO.update(
                 data= {
                     amount: req.body.amount,
+                    purpose: req.body.purpose, 
                 },
                 where= { id: u.id }
             )

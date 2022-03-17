@@ -9,6 +9,7 @@ const userDAO = require('../../user/user.dao');
 const User = require('../../user/user.model');
 
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const productMigration1 = require('../../db_migrations/1647514335737_add_car_details_on_products_table');
 const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
@@ -55,6 +56,7 @@ beforeAll( async () => {
     // migrate tables
     await userMigration0.up();
     await productMigration0.up();
+    await productMigration1.up();
     await stockMigration0.up();
 
 

@@ -33,6 +33,21 @@ const validate = () => {
             .optional()
             .isBoolean()
                 .withMessage("Active must be a boolean"),
+        body('companyName')
+            .optional()
+            .isLength({ min: 1, max: 300 }).withMessage('Company Name must be a 1-300 characters only'),
+        body('companyNumber')
+            .if(body('companyName').exists()) // if companyName provided
+            .not().isEmpty() // then companyNumber is also required
+            .isNumeric().withMessage('Company Number must be a number'),
+        body('companyAddress')
+            .if(body('companyName').exists()) // if companyName provided
+            .not().isEmpty() // then companyAddress is also required
+            .isLength({ min: 1, max: 500 }).withMessage('Company Address must be a 1-500 characters only'),
+        body('companyTin')
+            .if(body('companyName').exists()) // if companyName provided
+            .not().isEmpty() // then companyTin is also required
+            .isLength({ min: 1, max: 300 }).withMessage('Company TIN must be a 1-300 characters only'),
    ]
 }
 

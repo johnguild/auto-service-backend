@@ -4,6 +4,7 @@ const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
 
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const productMigration1 = require('../../db_migrations/1647514335737_add_car_details_on_products_table');
 const Product = require('../../product/product.model');
 const productDAO = require('../../product/product.dao');
 
@@ -25,6 +26,7 @@ beforeAll( async() => {
     await stockMigration0.down();
     // migrate tables
     await productMigration0.up();
+    await productMigration1.up();
     await stockMigration0.up();
 });
 

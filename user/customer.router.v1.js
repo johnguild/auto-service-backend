@@ -47,6 +47,10 @@ const apiVersion = 'v1';
                 lastName: req.body.lastName,
                 gender: req.body.gender,
                 birthDay: req.body.birthDate,
+                companyName: req.body.companyName,
+                companyNumber: req.body.companyNumber,
+                companyAddress: req.body.companyAddress,
+                companyTin: req.body.companyTin,
                 role: User.ROLE_CUSTOMER
             });
 
@@ -127,7 +131,11 @@ const apiVersion = 'v1';
                     lastName: req.body.lastName,
                     birthDay: req.body.birthDate,
                     gender: req.body.gender,
-                    isDisabled: isDisabled 
+                    isDisabled: isDisabled,
+                    companyName: req.body.companyName,
+                    companyNumber: req.body.companyNumber,
+                    companyAddress: req.body.companyAddress,
+                    companyTin: req.body.companyTin,
                 },
                 where= { id: u.id }
             )
