@@ -4,6 +4,7 @@ const pool = getPool();
 const { toSnakeCase } = require('../utils/string');
 const Service = require('./service.model');
 const Product = require('../product/product.model');
+const Stock = require('../stock/stock.model');
 
 
 
@@ -183,9 +184,21 @@ const find = async(
             CASE WHEN count(pr) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT pr.prdct) END as all_products 
         FROM ${Service.tableName} as s
         LEFT OUTER JOIN (
-            SELECT p.id, jsonb_build_object('id', p.id, 'name', p.name, 'sku', p.sku, 
-                'description', p.description) as prdct  
+            SELECT p.id, 
+            jsonb_build_object('id', p.id, 'name', p.name, 'sku', p.sku, 
+                'description', p.description, 'car_make', p.car_make, 'car_type', p.car_type, 
+                'car_year', p.car_year, 'car_part', p.car_part, 'stocks', 
+                CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.stock) END
+                ) as prdct  
             FROM ${Product.tableName} as p 
+            LEFT OUTER JOIN (
+                SELECT s.product_id, jsonb_build_object('id', s.id, 'quantity', s.quantity, 
+                    'supplier', s.supplier, 'unit_price', s.unit_price, 'selling_price', s.selling_price) 
+                    as stock  
+                FROM ${Stock.tableName} as s 
+                WHERE s.quantity > 0  
+            ) as ss ON ss.product_id = p.id 
+            GROUP BY p.id  
         ) as pr ON pr.id = any(s.products)  
         ${whereString} 
         GROUP BY s.id

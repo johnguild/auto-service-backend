@@ -30,14 +30,14 @@ const validate = () => {
             .isUUID().withMessage('Services Id are invalid'), 
         body('services.*.price')
             .isNumeric().withMessage('Services price are invalid'), 
-        body('services.*.products')
+        body('services.*.addedProducts')
             .default([])
             .isArray().withMessage('Products must be an array of object'), 
-        body('services.*.products.*.id')
+        body('services.*.addedProducts.*.id')
             .isUUID().withMessage('Product Id are invalid'), 
-        body('services.*.products.*.price')
+        body('services.*.addedProducts.*.price')
             .isNumeric().withMessage('Product price are invalid'), 
-        body('services.*.products.*.quantity')
+        body('services.*.addedProducts.*.quantity')
             .isNumeric().withMessage('Product quantity are invalid'), 
         body('mechanics')
             .default([])

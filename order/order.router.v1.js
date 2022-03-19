@@ -52,8 +52,8 @@ const apiVersion = 'v1';
             const tmpServiceProductQuantities = [];
             if (req.body.services.length > 0) {
                 for (const bodyService of req.body.services) {
-                    if (bodyService.products.length > 0) {
-                        for (const bodyProduct of bodyService.products) {
+                    if (bodyService.addedProducts.length > 0) {
+                        for (const bodyProduct of bodyService.addedProducts) {
                             // console.log(bodyProduct);
                             // console.log(tmpServiceProductIds.includes(bodyProduct.id));
                             if (tmpServiceProductIds.includes(bodyProduct.id)) {
@@ -89,6 +89,17 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
+            /// comput the total
+            let partTotal = 0, serviceTotal = 0;
+            for (const bodyService of req.body.services) {
+                serviceTotal += parseFloat(bodyService.price);
+                if (bodyService.addedProducts.length > 0) {
+                    for (const bodyProduct of bodyService.addedProducts) {
+                        partTotal += parseInt(bodyProduct.quantity) * parseFloat(bodyProduct.price);
+                    }
+                }
+            }
+
             // console.log(tmpServiceProductIds, tmpServiceProductQuantities);
 
             const order = await orderDAO.insertOrder(
@@ -101,7 +112,7 @@ const apiVersion = 'v1';
                     carOdometer: req.body.carOdometer,
                     receiveDate: req.body.receiveDate,
                     warrantyEnd: req.body.warrantyEnd,
-                    total: 0// temp
+                    total: (partTotal + serviceTotal)
                 }
             );
 
@@ -117,9 +128,9 @@ const apiVersion = 'v1';
                         }
                     );
     
-                    if (req.body.services[index].products.length > 0) {
+                    if (req.body.services[index].addedProducts.length > 0) {
 
-                        for (const bodyProduct of req.body.services[index].products) {
+                        for (const bodyProduct of req.body.services[index].addedProducts) {
                             await orderDAO.insertOrderProduct(
                                 data = {
                                     orderId: order.id,
