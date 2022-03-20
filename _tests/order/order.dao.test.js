@@ -637,3 +637,99 @@ describe('find', () => {
     });
 
 });
+
+
+describe('total', () => {
+
+    it('when finding total by customerId, will succeed', async() => {
+
+        const preDate = new Date();
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 300,
+            },
+            {
+                customerId: personnelUser.id,
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const data of orderData) {
+            const o = await orderDAO.insertOrder(data);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+        let ordersTotal;
+        let err = null;
+        try {
+            ordersTotal = await orderDAO.total( 
+                where= {
+                    customerId: customerUser.id,
+                },
+                opt= {
+                    startDate: preDate.toISOString(),
+                    endDate: new Date().toISOString(),
+                } 
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(orders, {depth: null});
+
+        expect(ordersTotal).toBe((orderData[0].total + orderData[1].total).toString());
+
+    });
+
+
+});

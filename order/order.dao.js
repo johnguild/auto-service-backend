@@ -428,6 +428,66 @@ const findCount = async(
     return res.rows.length > 0 ? res.rows[0].total : 0;
 }
 
+const total = async(
+    where = {
+        customerId,
+        completed,
+    },
+    opt = {
+        startDate,
+        endDate,
+    } 
+) => {
+
+    if (!opt.startDate && !opt.endDate) {
+        throw Error('Required to add opt.startDate and opt.endDate');
+    }
+
+    /// collect all variables need to build the query
+    const columns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(where[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let whereString = ' ';
+    columns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'AND ' : ''; 
+        whereString += `o.${prefix}${col} = ${valueIndexes[ind]} `;
+    });
+
+    /// appends the date range
+    if (whereString.trim() != '') {
+        whereString += 'AND ';
+    }
+    whereString += `o.created_at >= '${opt.startDate}' 
+        AND o.created_at <= '${opt.endDate}' `;
+
+    if (whereString.trim() != '') {
+        whereString = `WHERE ${whereString}`;
+    }
+
+    let text = `
+        SELECT SUM(o.total) as total 
+        FROM ${Order.tableName} as o 
+        ${whereString};`;
+
+        
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    // console.dir(res.rows, {depth: null});
+
+    return res.rows.length > 0 && res.rows[0].total ? res.rows[0].total : 0;
+}
+
 module.exports = {
     insertOrder,
     insertOrderService,
@@ -436,5 +496,6 @@ module.exports = {
     insertOrderMechanic,
     updateOrder,
     find,
-    findCount
+    findCount,
+    total,
 }
