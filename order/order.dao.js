@@ -153,6 +153,9 @@ const insertOrder = async(
  const insertOrderPayment = async(
     data = {
         orderId, 
+        type,
+        bank,
+        referenceNumber,
         amount, 
         dateTime, 
     }
@@ -358,6 +361,7 @@ const find = async(
         ) as pr ON pr.order_id = o.id 
         LEFT OUTER JOIN (
             SELECT p.order_id, jsonb_build_object('id', p.id, 'amount', p.amount, 
+                'type', p.type, 'bank', p.bank, 'reference_number', p.reference_number,
                 'date_time', p.date_time) as pymnt  
             FROM ${OrderPayments.tableName} as p 
         ) as py ON py.order_id = o.id 

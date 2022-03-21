@@ -6,12 +6,18 @@ class OrderPayment {
     static fromDB({
         id,
         order_id, 
+        type,
+        bank,
+        reference_number,
         amount,
         date_time
     }) {
         const instance = new this({
             id,
             orderId: order_id,
+            type,
+            bank,
+            referenceNumber: reference_number,
             amount,
             dateTime: date_time,
         });
@@ -22,6 +28,9 @@ class OrderPayment {
     constructor({ 
         id,
         orderId,
+        type,
+        bank,
+        referenceNumber,
         amount,
         dateTime,
     }) {
@@ -29,6 +38,9 @@ class OrderPayment {
         this.orderId = orderId;
         this.amount = amount;
         this.dateTime = dateTime;
+        this.type = type;
+        this.bank = bank;
+        this.referenceNumber = referenceNumber;
     }
     
 }   

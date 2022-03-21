@@ -7,27 +7,37 @@ const pool = getPool();
 const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
 const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const stockMigration0 =  require('../../db_migrations/1641300048254_create_stocks_table');
+const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
 const orderMigration0 = require('../../db_migrations/1642765556944_create_orders_table');
 const orderServicesMigration0 = require('../../db_migrations/1642766434532_create_order_services_table');
 const orderProductsMigration0 = require('../../db_migrations/1642766700669_create_order_products_table');
 const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
+const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
+
 
 const User = require('../../user/user.model');
 const Service = require('../../service/service.model');
 const Product = require('../../product/product.model');
+const Stock = require('../../stock/stock.model');
+const Mechanic = require('../../mechanic/mechanic.model');
 const Order = require('../../order/order.model');
 const OrderServices = require('../../order/orderServices.model');
 const OrderProducts = require('../../order/orderProducts.model');
 const OrderPayments = require('../../order/orderPayments.model');
+const OrderMechanics = require('../../order/orderMechanics.model');
 
 const userDAO = require('../../user/user.dao');
 const orderDAO = require('../../order/order.dao');
 const serviceDAO = require('../../service/service.dao');
 const productDAO = require('../../product/product.dao');
+const stockDAO = require('../../stock/stock.dao');
+const mechanicDAO = require('../../mechanic/mechanic.dao');
 
 
 
 const { app } = require('../../app');
+const req = require('express/lib/request');
 const v = 'v1';
 
 const managerData = {
@@ -64,9 +74,18 @@ const customerData = {
     role: User.ROLE_CUSTOMER,
 }
 
+const mechanicData = {
+    mobile: '639359372676',
+    firstName: 'Test Robin',
+    lastName: 'Perez',
+    birthDay: new Date(Date.now()).toISOString(),
+    gender: 'Male',
+}
+
 
 let managerUser, personnelUser, customerUser;
 let managerToken, personnelToken, customerToken;
+let mechanic;
 
 const services = [];
 const products = [];
@@ -78,18 +97,24 @@ beforeAll( async() => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
+    await mechanicMigration0.down();
     await orderMigration0.down();
     await orderServicesMigration0.down();
     await orderProductsMigration0.down();
     await orderPaymentsMigration0.down();
+    await orderMechanicsMigration0.down();
     // clear db
     await userMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
+    await stockMigration0.up();
+    await mechanicMigration0.up();
     await orderMigration0.up();
     await orderServicesMigration0.up();
     await orderProductsMigration0.up();
     await orderPaymentsMigration0.up();
+    await orderMechanicsMigration0.up();
 
 
     /// create users
@@ -148,67 +173,89 @@ beforeAll( async() => {
         services.push(serviceInstance);
     }
     
+    /// create products and stocks
     for (const product of [
         {
             name: 'Product 1',
             sku: '123456',
             description: 'Description 1',
-            stock: 12,
-            price: 100.5,
         },
         {
             name: 'Product 2',
             sku: '0003123123',
             description: 'Description 2',
-            stock: 12,
-            price: 100.5,
         },
         {
             name: 'Product 3',
             sku: '000414444',
             description: 'Description 3',
-            stock: 120,
-            price: 2000,
         },
     ]) {
         const productInstance = await productDAO.insert(product);
         products.push(productInstance);
+
+        await stockDAO.insert({
+            productId: productInstance.id,
+            personnelId: personnelUser.id,
+            supplier: 'Texas',
+            quantity: 720,
+            unitPrice: 99,
+            sellingPrice: 131,
+        });
+
+        await stockDAO.insert({
+            productId: productInstance.id,
+            personnelId: personnelUser.id,
+            supplier: 'Texas',
+            quantity: 400,
+            unitPrice: 89,
+            sellingPrice: 132,
+        });
     }
+
+
+    // create mechanic
+    mechanic = await mechanicDAO.insert(mechanicData);
 });
 
 beforeEach( async() => {
+    // await pool.query(`DELETE FROM ${Product.tableName};`);
+    // await pool.query(`DELETE FROM ${Stock.tableName};`);
     await pool.query(`DELETE FROM ${Order.tableName};`);
     await pool.query(`DELETE FROM ${OrderServices.tableName};`);
     await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
     await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
+    await pool.query(`DELETE FROM ${OrderMechanics.tableName};`);
 });
 
 afterAll( async() => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
+    await mechanicMigration0.down();
     await orderMigration0.down();
     await orderServicesMigration0.down();
     await orderProductsMigration0.down();
     await orderPaymentsMigration0.down();
+    await orderMechanicsMigration0.down();
     await closePool();
 });
 
 
-it('when with valid data, will succeed', async() => {
+it('when with valid data with Cash, will succeed', async() => {
 
 
-    // create services first
+    // create order first
     const orderData = {
         customerId: customerUser.id,
-        installments: 3,
         carMake: 'Toyota',
         carType: '2020 Camry',
         carYear: '2000',
         carPlate: '1234-ABCD',
         carOdometer: '6700',
-        workingDays: 10,
-        downPayment: 1000,
+        receiveDate: new Date().toISOString(),
+        warrantyEnd: new Date().toISOString(),
         services: [{
             id: services[0].id,
             price: services[0].price,
@@ -226,6 +273,10 @@ it('when with valid data, will succeed', async() => {
                 quantity: 2,
             }]
         }],
+        payment: {
+            type: 'AccountsReceivable',
+            amount: 300
+        }
     }
 
     const orderResponse = await request(app)
@@ -239,6 +290,7 @@ it('when with valid data, will succeed', async() => {
         .post(`/${v}/orders/${orderResponse.body.data.id}/payments`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send({
+            type: 'Cash',
             amount: 12000,
         });
 
@@ -250,26 +302,20 @@ it('when with valid data, will succeed', async() => {
 });
 
 
+it('when with valid data with Online, will succeed', async() => {
 
-
-
-it('when with there are no products in services, will succeed', async() => {
 
     // create services first
     const orderData = {
         customerId: customerUser.id,
-        installments: 3,
         carMake: 'Toyota',
         carType: '2020 Camry',
         carYear: '2000',
         carPlate: '1234-ABCD',
         carOdometer: '6700',
-        workingDays: 10,
-        downPayment: 1000,
+        receiveDate: new Date().toISOString(),
+        warrantyEnd: new Date().toISOString(),
         services: [{
-            id: services[0].id,
-            price: services[0].price,
-        },{
             id: services[0].id,
             price: services[0].price,
             products: [{
@@ -277,18 +323,46 @@ it('when with there are no products in services, will succeed', async() => {
                 price: products[1].price,
                 quantity: 1,
             }]
+        },{
+            id: services[0].id,
+            price: services[0].price,
+            products: [{
+                id: products[0].id,
+                price: products[1].price,
+                quantity: 2,
+            }]
         }],
+        payment: {
+            type: 'AccountsReceivable',
+            amount: 300
+        }
     }
 
-    const response = await request(app)
+    const orderResponse = await request(app)
         .post(`/${v}/orders`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send(orderData);
 
-    // console.dir(response.body, { depth: null });
+    // console.dir(orderResponse.body, { depth: null });
 
-    expect(response.status).toBe(200);
-    expect(response.body.data).not.toBeNull();
+    const paymentData = {
+        type: 'Online',
+        bank: 'BDO',
+        referenceNumber: 'BDO09090',
+        amount: 12000,
+    
+    }
+
+    const paymentResponse = await request(app)
+        .post(`/${v}/orders/${orderResponse.body.data.id}/payments`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(paymentData);
+
+    // console.dir(paymentResponse.body, { depth: null });
+
+    expect(paymentResponse.status).toBe(200);
+    expect(paymentResponse.body.data).not.toBeNull();
 
 });
+
 

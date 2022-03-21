@@ -148,6 +148,23 @@ const apiVersion = 'v1';
                 }
             }
 
+            if (req.body.payment) {
+                await orderDAO.insertOrderPayment(
+                    data = {
+                        orderId: order.id,
+                        type: req.body.payment.type,
+                        bank: req.body.payment.type == 'Online' 
+                            ? req.body.payment.bank
+                            : undefined,
+                        referenceNumber: req.body.payment.type == 'Online' 
+                            ? req.body.payment.referenceNumber
+                            : undefined,
+                        amount: req.body.payment.amount,
+                        dateTime: new Date().toISOString(),
+                    }
+                )
+            }
+
             if (req.body.mechanics.length > 0) {
                 for (const bodyMechanic of req.body.mechanics) {
                     await orderDAO.insertOrderMechanic(
@@ -202,7 +219,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -320,6 +337,13 @@ const apiVersion = 'v1';
             await orderDAO.insertOrderPayment(
                 data= {
                     orderId: s.id,
+                    type: req.body.type,
+                    bank: req.body.type == 'Online' 
+                        ? req.body.bank
+                        : undefined,
+                    referenceNumber: req.body.type == 'Online' 
+                        ? req.body.referenceNumber
+                        : undefined,
                     amount: req.body.amount,
                     dateTime: new Date().toISOString(),
                 }
@@ -334,7 +358,7 @@ const apiVersion = 'v1';
             return req.api.status(200).send();
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

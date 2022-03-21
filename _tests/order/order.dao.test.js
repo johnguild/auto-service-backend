@@ -321,7 +321,7 @@ describe('insertOrderProducts', () => {
 
 describe('insertOrderPayments', () => {
 
-    it('when creating with valid and complete data, will succeed', async() => {
+    it('when creating with valid and Cash type, will succeed', async() => {
 
         const order = await orderDAO.insertOrder({
             customerId: customerUser.id,
@@ -335,6 +335,7 @@ describe('insertOrderPayments', () => {
 
         const paymentData = {
             orderId: order.id, 
+            type: 'Cash',
             amount: 500, 
             dateTime: new Date().toISOString(), 
         }
@@ -351,6 +352,83 @@ describe('insertOrderPayments', () => {
         expect(err).toBeNull();
 
         expect(orderPayment.orderId).toBe(paymentData.orderId);
+        expect(orderPayment.type).toBe(paymentData.type);
+        expect(parseFloat(orderPayment.amount)).toBe(paymentData.amount);
+        expect(orderPayment.dateTime.toISOString()).toBe(paymentData.dateTime);
+    });
+
+    it('when creating with valid and Online type, will succeed', async() => {
+
+        const order = await orderDAO.insertOrder({
+            customerId: customerUser.id,
+            total: 1200,
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+        });
+
+        const paymentData = {
+            orderId: order.id, 
+            type: 'Online',
+            bank: 'BDO',
+            referenceNumber: 'BDO00012312',
+            amount: 500, 
+            dateTime: new Date().toISOString(), 
+        }
+
+
+        let orderPayment;
+        let err = null;
+        try {
+            orderPayment = await orderDAO.insertOrderPayment(paymentData);
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        expect(orderPayment.orderId).toBe(paymentData.orderId);
+        expect(orderPayment.type).toBe(paymentData.type);
+        expect(orderPayment.bank).toBe(paymentData.bank);
+        expect(orderPayment.referenceNumber).toBe(paymentData.referenceNumber);
+        expect(parseFloat(orderPayment.amount)).toBe(paymentData.amount);
+        expect(orderPayment.dateTime.toISOString()).toBe(paymentData.dateTime);
+    });
+
+    it('when creating with valid and AccountsReceivable type, will succeed', async() => {
+
+        const order = await orderDAO.insertOrder({
+            customerId: customerUser.id,
+            total: 1200,
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+        });
+
+        const paymentData = {
+            orderId: order.id, 
+            type: 'AccountsReceivable',
+            amount: 500, 
+            dateTime: new Date().toISOString(), 
+        }
+
+
+        let orderPayment;
+        let err = null;
+        try {
+            orderPayment = await orderDAO.insertOrderPayment(paymentData);
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        expect(orderPayment.orderId).toBe(paymentData.orderId);
+        expect(orderPayment.type).toBe(paymentData.type);
         expect(parseFloat(orderPayment.amount)).toBe(paymentData.amount);
         expect(orderPayment.dateTime.toISOString()).toBe(paymentData.dateTime);
     });

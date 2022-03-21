@@ -44,7 +44,24 @@ const validate = () => {
             .isArray().withMessage('Mechanics must be an array of object'), 
         body('mechanics.*.id')
             .isUUID().withMessage('Mechanics Id are invalid'), 
-   ]
+        body('payment')
+            .notEmpty()
+                .withMessage('Payment is requried!'),
+        body('payment.type')
+            .isIn(['AccountsReceivable', 'Online', 'Cash'])
+                .withMessage('Payment type must be a either of AccountsReceivable/Online/Cash'),
+        body('payment.amount')
+            .isNumeric()
+                .withMessage('Payment Amount must be a number'),
+        body('payment.bank')
+            .optional()
+            .isLength({ max: 300 })
+                .withMessage('Payment Bank/E-Wallet must be 1-300 characters only'),
+        body('payment.referenceNumber')
+            .optional()
+            .isLength({ max: 300 })
+                .withMessage('Payment Reference Number must be 1-300 characters only'),
+    ]
 }
 
 
