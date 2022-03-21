@@ -24,7 +24,9 @@ class Service {
             discountedPrice: discounted_price,
             cover,
             products,
-            allProducts: all_products.map((p) => Product.fromDB(p)),
+            allProducts: all_products.length > 0 
+                ? all_products.map((p) => Product.fromDB(p))
+                : [],
         });
         return instance;
     }

@@ -73,6 +73,7 @@ it('when with valid data, will succeed', async() => {
     /// create personal
     const cashData = {
         amount: 1000,
+        purpose: 'Test'
     }
     const cash = await cashDAO.insert(cashData);
 
@@ -80,6 +81,7 @@ it('when with valid data, will succeed', async() => {
 
     const newData = {
         amount: 200,
+        purpose: 'Test e'
     }
 
     const response = await request(app)
@@ -92,6 +94,7 @@ it('when with valid data, will succeed', async() => {
     expect(response.status).toBe(200);
     expect(response.body.data).not.toBeNull();
     expect(response.body.data.amount).toBe(newData.amount.toString());
+    expect(response.body.data.purpose).toBe(newData.purpose);
 
 });
 
@@ -102,6 +105,7 @@ it('when usage already added, will fail', async() => {
     /// create personal
     const cashData = {
         amount: 1000,
+        purpose: 'Test'
     }
     const cash = await cashDAO.insert(cashData);
 
@@ -115,6 +119,7 @@ it('when usage already added, will fail', async() => {
 
     const newData = {
         amount: 200,
+        purpose: 'Test'
     }
 
     const response = await request(app)
@@ -133,7 +138,10 @@ it('when with non existing cash id data, will fail', async() => {
     const response = await request(app)
         .post(`/${v}/cashes/${managerId}`)
         .set('Authorization', `Bearer ${managerToken}`)
-        .send({amount: 3000});
+        .send({
+            amount: 3000,
+            purpose: 'Test'
+        });
 
     // console.dir(response.body, { depth: null });
 

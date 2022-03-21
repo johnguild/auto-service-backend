@@ -198,7 +198,7 @@ afterAll( async() => {
 });
 
 
-it.only('when with valid data, will succeed', async() => {
+it('when with valid data, will succeed', async() => {
 
     /// create products and stocks
     for (const product of [
@@ -267,6 +267,10 @@ it.only('when with valid data, will succeed', async() => {
                 quantity: 2,
             }]
         }],
+        payment: {
+            type: 'Cash',
+            amount: 750
+        }
     }
 
     const response = await request(app)
@@ -303,6 +307,10 @@ it('when with there are no services, will succeed', async() => {
         carOdometer: '6700',
         receiveDate: new Date().toISOString(),
         warrantyEnd: new Date().toISOString(),
+        payment: {
+            type: 'Cash',
+            amount: 750
+        }
     }
 
     const response = await request(app)
@@ -344,6 +352,12 @@ it('when with there are no products in services, will succeed', async() => {
                 quantity: 1,
             }]
         }],
+        receiveDate: new Date().toISOString(),
+        warrantyEnd: new Date().toISOString(),
+        payment: {
+            type: 'Cash',
+            amount: 750
+        }
     }
 
     const response = await request(app)

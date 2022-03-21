@@ -13,9 +13,12 @@ const serviceDAO = require('../../service/service.dao');
 const Service = require('../../service/service.model');
 
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const productMigration1 = require('../../db_migrations/1647514335737_add_car_details_on_products_table');
 const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const Stock = require('../../stock/stock.model');
 
 const { app } = require('../../app');
 const v = 'v1';
@@ -40,11 +43,13 @@ beforeAll( async () => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     // migrate tables
     await userMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
-
+    await productMigration1.up();
+    await stockMigration0.up();
 
     const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
     const manager = await userDAO.insert(data = {
@@ -58,6 +63,7 @@ beforeAll( async () => {
 beforeEach( async () => {
     await pool.query(`
         DELETE FROM ${Product.tableName};
+        DELETE FROM ${Stock.tableName};
         DELETE FROM ${Service.tableName};
     `);
 
@@ -67,6 +73,7 @@ afterAll( async () => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await closePool();
 });
 
@@ -100,16 +107,12 @@ it('when with valid data with products, will succeed', async() => {
         name: 'test prod',
         sku: '00001',
         description: 'desc',
-        stock: 0,
-        price: 120,
     });
 
     const product2 = await productDAO.insert({
         name: 'test prod 2',
         sku: '00002',
         description: 'desc',
-        stock: 0,
-        price: 350,
     });
 
     const serviceData = {

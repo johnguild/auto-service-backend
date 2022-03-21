@@ -25,7 +25,9 @@ class Product {
             carType: car_type,
             carYear: car_year,
             carPart: car_part,
-            stocks: stocks.map((s) => Stock.fromDB(s)),
+            stocks: stocks.length > 0 
+                ? stocks.map((s) => Stock.fromDB(s))
+                : [],
         });
         return instance;
     }

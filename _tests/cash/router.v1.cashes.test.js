@@ -71,6 +71,7 @@ it('when with valid data, will succeed', async() => {
 
     const cashData = {
         amount: 1000,
+        purpose: 'Test'
     }
 
     const response = await request(app)
@@ -91,7 +92,8 @@ it('when with valid data, will succeed', async() => {
 it('when with invalid amount data, will fail', async() => {
 
     const cashData = {
-        amount: 'Hello123123'
+        amount: 'Hello123123',
+        purpose: 'Test'
     }
 
     const response = await request(app)
@@ -107,15 +109,11 @@ it('when with invalid amount data, will fail', async() => {
 
 
 
-it('when with invalid birthDate data, will fail', async() => {
+it('when with invalid amount data, will fail', async() => {
 
     const cashData = {
-        email: 'person1.autoservice@gmail.com',
-        password: 'P@ssW0rd',
-        firstName: 'Cash',
-        lastName: 'One',
-        gender: 'Male',
-        birthDate: 'Feb 26, 1992'
+        amount: 'person1.autoservice@gmail.com',
+        purpose: 'Test'
     }
 
     const response = await request(app)
@@ -153,7 +151,8 @@ it('when with valid data but using customer account, will succeed', async() => {
  
 
     const cashData = {
-        amount: 1000
+        amount: 1000,
+        purpose: 'Test'
     }
 
     const response = await request(app)
