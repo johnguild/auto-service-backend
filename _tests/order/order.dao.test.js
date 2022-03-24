@@ -615,7 +615,6 @@ describe('find', () => {
 
     });
 
-
     it('when finding by customerId with mechanic, will succeed', async() => {
 
 
@@ -714,6 +713,107 @@ describe('find', () => {
 
     });
 
+    it('when finding using opt.startDate and opt.endDate, will succeed', async() => {
+
+        /// create a first one (excluded)
+        await orderDAO.insertOrder({
+            customerId: customerUser.id,
+            carMake: 'Toyota',
+            carType: 'Camry',
+            carYear: '2010',
+            carPlate: '3333-ABCD',
+            carOdometer: '9200',
+            total: 9000,
+        });
+
+        const preDate = new Date();
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+            {
+                customerId: personnelUser.id,
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const data of orderData) {
+            const o = await orderDAO.insertOrder(data);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+        let orders;
+        let err = null;
+        try {
+            orders = await orderDAO.find( 
+                where= {
+                    // customerId: customerUser.id,
+                },
+                opt= {
+                    startDate: preDate.toISOString(),
+                    endDate: new Date().toISOString(),
+                } 
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(orders, {depth: null});
+
+        expect(orders.length).toBe(orderData.length);
+
+    });
+
 });
 
 
@@ -806,6 +906,117 @@ describe('total', () => {
         // console.dir(orders, {depth: null});
 
         expect(ordersTotal).toBe((orderData[0].total + orderData[1].total).toString());
+
+    });
+
+
+});
+
+
+describe('findMechanicsWithOngoing', () => {
+
+    it.only('when finding findMechanicsWithOngoing , will succeed', async() => {
+
+        const preDate = new Date();
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+
+            },
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
+                carPlate: '4444-ABCD',
+                carOdometer: '6700',
+                total: 300,
+            },
+            {
+                customerId: personnelUser.id,
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
+                carPlate: '3212-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const oData of orderData) {
+            const o = await orderDAO.insertOrder(oData);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+
+                // insert mechanic
+                await orderDAO.insertOrderMechanic(
+                    data = {
+                        orderId: o.id,
+                        mechanicId: mechanic.id,
+                    }
+                );
+
+                if (index == 0) {
+                    await orderDAO.updateOrder(
+                        data = {
+                            completed: true
+                        },
+                        where = {
+                            id: o.id
+                        }
+                    )
+                }
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+        const test = await orderDAO.find(where={});
+        // console.dir(test, {depth: null});
+
+        let mechanics;
+        let err = null;
+        try {
+            mechanics = await orderDAO.findMechanicsWithOngoing();
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(mechanics, {depth: null});
+
+        // expect(ordersTotal).toBe((orderData[0].total + orderData[1].total).toString());
 
     });
 

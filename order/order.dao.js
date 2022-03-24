@@ -298,6 +298,8 @@ const find = async(
     opt= {
         limit: undefined,
         skip: undefined,
+        startDate: undefined,
+        endDate: undefined,
     }
 ) => {
 
@@ -332,6 +334,16 @@ const find = async(
 
         if (opt.skip != undefined) {
             optionString += `OFFSET ${opt.skip} `;
+        }
+
+        if (opt.startDate != undefined && opt.endDate != undefined) {
+            if (whereString.trim() == '') {
+                whereString = `WHERE o.created_at >= '${opt.startDate}' 
+                    AND o.created_at <= '${opt.endDate}'`;
+            } else {
+                whereString += `AND o.created_at >= '${opt.startDate}' 
+                    AND o.created_at <= '${opt.endDate}'`;
+            }
         }
     }
      
@@ -492,6 +504,53 @@ const total = async(
     return res.rows.length > 0 && res.rows[0].total ? res.rows[0].total : 0;
 }
 
+const findMechanicsWithOngoing = async() => {
+    
+    let text = `
+        SELECT m.*, oo.car_plate   
+        FROM ${Mechanic.tableName} as m 
+        LEFT JOIN (
+            SELECT om.mechanic_id, om.order_id  
+            FROM ${OrderMechanics.tableName} as om 
+        ) as om ON om.mechanic_id = m.id 
+        LEFT JOIN (
+            SELECT o.id, o.car_plate   
+            FROM ${Order.tableName} as o 
+        ) as oo ON oo.id = om.order_id 
+        GROUP BY m.id, oo.car_plate 
+    `;
+    // text += `GROUP BY oo.car_plate, m.id;`;
+        
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+    // console.dir(res.rows, {depth: null});
+    /// format data
+    const formattedData = [];
+    // console.dir(formattedData, {depth: null});
+    res.rows.forEach((ri) => {
+        let onFormatted = null;
+        formattedData.forEach((fi) => {
+            if (ri.id == fi.id) {
+                onFormatted = fi;
+            }
+        });
+
+        if (onFormatted) {
+            onFormatted.car_plates.push(ri.car_plate);
+        } else {
+            formattedData.push({
+                ...ri,
+                car_plates: [ri.car_plate],
+            })
+        }
+    })
+    // console.dir(formattedData, {depth: null});
+
+    return formattedData.map(u => Mechanic.fromDB(u));
+}
+
 module.exports = {
     insertOrder,
     insertOrderService,
@@ -502,4 +561,5 @@ module.exports = {
     find,
     findCount,
     total,
+    findMechanicsWithOngoing
 }

@@ -10,6 +10,7 @@ const completeValidation = require('./validations/complete');
 // const ordersIdValidation = require('./validations/orders_id');
 const getOrdersValidation = require('./validations/get_orders');
 const getOrdersTotalValidation = require('./validations/get_orders_total');
+const getOrdersReportValidation = require('./validations/get_orders_report');
 const validationCheck = require('../middlewares/validationCheck');
 const orderDAO = require('./order.dao');
 const serviceDAO = require('../service/service.dao');
@@ -307,7 +308,6 @@ const apiVersion = 'v1';
 
 
 
-
 /**
  * Add Order Payment
  */
@@ -502,7 +502,7 @@ const apiVersion = 'v1';
 /**
  * Get Order Listing
  */
- router.get(`/${apiVersion}/orders`, 
+router.get(`/${apiVersion}/orders`, 
     api('Get Order Listing'),
     auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
     getOrdersValidation(),
@@ -627,6 +627,131 @@ const apiVersion = 'v1';
 
             return req.api.status(200)
                 .send(total);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+    }
+);
+
+
+/**
+ * Get Order Report Data
+ */
+ router.get(`/${apiVersion}/orders-reports`, 
+    api('Get Order Report Data'),
+    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    getOrdersReportValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            const getStartEnd = (dateTime, dateType) => {
+                let start, end;
+                const tmpDateTime = new Date(dateTime);
+                tmpDateTime.setHours(0,0,0,0);
+                switch(dateType) {
+                    case 'Year':
+                        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+                        startOfYear.setHours(0,0,0,0);
+                        start = new Date(startOfYear).toISOString();
+                        const endOfYear = new Date(new Date().getFullYear(), 11, 31);
+                        endOfYear.setHours(23,59,59,999);
+                        end = new Date(endOfYear).toISOString();
+                        break;
+                    case 'Month':
+                        const startOfMonth = new Date(tmpDateTime.getFullYear(), tmpDateTime.getMonth(), 1);
+                        startOfMonth.setHours(0,0,0,0);
+                        start = new Date(startOfMonth).toISOString();
+                        const lastDay = new Date(tmpDateTime.getFullYear(), tmpDateTime.getMonth() + 1, 0);
+                        const endOfMonth = new Date(lastDay);
+                        endOfMonth.setHours(23,59,59,999);
+                        end = new Date(endOfMonth).toISOString();
+                        break;
+                    case 'Week':
+                        const today = tmpDateTime.getDate();
+                        const dayOfTheWeek = tmpDateTime.getDay();
+                        const firstDate = tmpDateTime.setDate(today - (dayOfTheWeek || 7));
+                        const startOfWeek = new Date(firstDate);
+                        startOfWeek.setHours(0,0,0,0);
+                        start = new Date(startOfWeek).toISOString();
+                        const lastDate = tmpDateTime.setDate(today - dayOfTheWeek + 7);
+                        const endOfWeek = new Date(lastDate);
+                        endOfWeek.setHours(23,59,59,999);
+                        end = new Date(endOfWeek).toISOString();
+                        break;
+                    case 'Day':
+                        start = new Date(tmpDateTime).toISOString();
+                        tmpDateTime.setHours(23,59,59,999);
+                        end = new Date(tmpDateTime).toISOString();
+                        break;
+                    case 'All':
+                    default:
+                        // set nothing
+                        const startOfProj = new Date(2022, 0, 1, 0, 0, 0, 0);
+                        start = new Date(startOfProj).toISOString();
+                        tmpDateTime.setHours(23,59,59,999);
+                        end = new Date(tmpDateTime).toISOString();
+                        break;
+                }
+                return { start, end }
+            }
+
+            const range = getStartEnd(new Date(), req.query.type);
+
+            // console.log(limit, skip);
+            /// check if acc exists
+            const orders = await orderDAO.find(
+                where ={
+                    customerId: req.query.customerId,
+                    completed: req.query.completed,
+                },
+                opt ={
+                    startDate: range.start,
+                    endDate: range.end,
+                },
+            );
+
+            // console.log(total);
+            // console.dir(allOrders, {depth:null});
+
+            return req.api.status(200)
+                .send(orders);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+    }
+);
+
+
+/**
+ * Get Order Mechanic Report Data
+ */
+ router.get(`/${apiVersion}/orders-mechanic-reports`, 
+    api('Get Order Mechanic Report Data'),
+    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+        
+            /// check if acc exists
+            const mechanics = await orderDAO.findMechanicsWithOngoing();
+
+            // console.log(total);
+            // console.dir(allOrders, {depth:null});
+
+            return req.api.status(200)
+                .send(mechanics);
 
         } catch (error) {
             // console.log(error);

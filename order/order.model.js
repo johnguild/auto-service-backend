@@ -85,6 +85,9 @@ class Order {
         this.mechanics = mechanics;
         this.customer = customer;
         this.services = [];
+        this.laborTotal = 0;
+        this.partsTotal = 0;
+        this.paymentsTotal = 0;
 
 
         // console.dir(allProducts, {depth: null});
@@ -98,6 +101,7 @@ class Order {
                 products: [],
             }
 
+            this.laborTotal += parseFloat(service.price);
             // newTotal += parseFloat(service.price);
 
             for (const product of allProducts) {
@@ -108,6 +112,7 @@ class Order {
                         quantity: product.quantity,
                         name: product.name,
                     });
+                    this.partsTotal += (parseInt(product.quantity) * parseFloat(product.price));
                     // newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
                 }
             }
@@ -124,6 +129,9 @@ class Order {
             // this.totalPayment = newTotalPayment;
         }
         
+        for (const payment of payments) {
+            this.paymentsTotal += parseFloat(payment.amount);
+        }
 
     }
     

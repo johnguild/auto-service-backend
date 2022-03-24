@@ -10,6 +10,7 @@ class Mechanic {
         last_name, 
         birth_day, 
         gender, 
+        car_plates = []
     }) {
         const user = new this({
             id, 
@@ -18,6 +19,7 @@ class Mechanic {
             lastName: last_name, 
             birthDay: birth_day, 
             gender, 
+            carPlates: car_plates
         });
         return user;
     }
@@ -29,6 +31,7 @@ class Mechanic {
         lastName, 
         birthDay, 
         gender, 
+        carPlates, 
     }) {
         this.id = id;
         this.mobile = mobile;
@@ -36,6 +39,7 @@ class Mechanic {
         this.lastName = lastName;
         this.birthDay = birthDay;
         this.gender = gender;
+        this.carPlates = carPlates;
         // this.#role = role;
     }
     
