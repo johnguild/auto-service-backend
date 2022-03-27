@@ -87,7 +87,7 @@ const apiVersion = 'v1';
 
             if (hasInsufficientStock) {
                 return req.api.status(400).errors([
-                    'Inventory quantity exceeds Stocks available!'
+                    'Inventory quantity exceeds stocks available!'
                 ]).send();
             }
 
@@ -220,7 +220,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -255,6 +255,48 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
+            /// check if stocks are available
+            const tmpServiceProductIds = [];
+            const tmpServiceProductQuantities = [];
+            if (req.body.services.length > 0) {
+                for (const bodyService of req.body.services) {
+                    if (bodyService.addedProducts.length > 0) {
+                        for (const bodyProduct of bodyService.addedProducts) {
+                            // console.log(bodyProduct);
+                            // console.log(tmpServiceProductIds.includes(bodyProduct.id));
+                            if (tmpServiceProductIds.includes(bodyProduct.id)) {
+                                const indexOf = tmpServiceProductIds.indexOf(bodyProduct.id);
+                                tmpServiceProductQuantities[indexOf] += parseInt(bodyProduct.quantity);
+                            } else {
+                                // console.log('add');
+                                tmpServiceProductIds.push(bodyProduct.id);
+                                tmpServiceProductQuantities.push(parseInt(bodyProduct.quantity));
+                            }
+                            // total += parseFloat(bodyProduct.price) * parseFloat(bodyProduct.quantity);
+                        }
+                    }
+                }
+            }
+
+            let hasInsufficientStock = false;
+            for (const productId of tmpServiceProductIds) {
+                const indexOf = tmpServiceProductIds.indexOf(productId);
+                const totalQuantity = tmpServiceProductQuantities[indexOf];
+
+                let stockTotal = await stockDAO.findTotalQuantity(where = {productId: productId});
+
+                // console.log(productId, totalQuantity, stockTotal);
+                if (totalQuantity > stockTotal) {
+                    hasInsufficientStock = true;
+                }
+            }
+
+            if (hasInsufficientStock) {
+                return req.api.status(400).errors([
+                    'Inventory quantity exceeds stocks available!'
+                ]).send();
+            }
+
             const order = orders[0];
 
             if (req.body.services.length > 0) {
@@ -268,9 +310,9 @@ const apiVersion = 'v1';
                         }
                     );
     
-                    if (req.body.services[index].products.length > 0) {
+                    if (req.body.services[index].addedProducts.length > 0) {
 
-                        for (const bodyProduct of req.body.services[index].products) {
+                        for (const bodyProduct of req.body.services[index].addedProducts) {
                             await orderDAO.insertOrderProduct(
                                 data = {
                                     orderId: order.id,
@@ -286,6 +328,26 @@ const apiVersion = 'v1';
                     index++;
                 }
             }
+
+            /// comput the new total
+            let partTotal = 0, serviceTotal = 0;
+            for (const bodyService of req.body.services) {
+                serviceTotal += parseFloat(bodyService.price);
+                if (bodyService.addedProducts.length > 0) {
+                    for (const bodyProduct of bodyService.addedProducts) {
+                        partTotal += parseInt(bodyProduct.quantity) * parseFloat(bodyProduct.price);
+                    }
+                }
+            }
+            /// add the previous totals
+            partTotal += parseFloat(order.partsTotal);
+            serviceTotal += parseFloat(order.laborTotal);
+
+            /// update total to db
+            await orderDAO.updateOrderTotal({
+                id: order.id,
+                total: (partTotal + serviceTotal)
+            });
 
             // const tmpOrders = await orderDAO.find(where = {
             //     id: req.params.id,

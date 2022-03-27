@@ -290,6 +290,27 @@ const updateOrder = async(
         res.rows.map(u => Order.fromDB(u)) : [];
 }
 
+
+const updateOrderTotal = async({
+    id, total
+}) => {
+    
+
+    const text = `
+        UPDATE ${Order.tableName} 
+        SET total = ${total} 
+        WHERE id='${id}' 
+        RETURNING *;`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => Order.fromDB(u)) : [];
+}
+
+
 const find = async(
     where= {
         customerId,
@@ -561,5 +582,6 @@ module.exports = {
     find,
     findCount,
     total,
-    findMechanicsWithOngoing
+    findMechanicsWithOngoing,
+    updateOrderTotal
 }

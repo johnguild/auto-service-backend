@@ -22,11 +22,13 @@ const Order = require('../../order/order.model');
 const OrderServices = require('../../order/orderServices.model');
 const OrderProducts = require('../../order/orderProducts.model');
 const OrderPayments = require('../../order/orderPayments.model');
+const Stock = require('../../stock/stock.model');
 
 const userDAO = require('../../user/user.dao');
 const orderDAO = require('../../order/order.dao');
 const serviceDAO = require('../../service/service.dao');
 const productDAO = require('../../product/product.dao');
+const stockDAO = require('../../stock/stock.dao');
 
 
 
@@ -176,6 +178,17 @@ beforeAll( async() => {
     ]) {
         const productInstance = await productDAO.insert(product);
         products.push(productInstance);
+
+
+        //add stocks
+        await stockDAO.insert(data = {
+            productId: productInstance.id,
+            personnelId: personnelUser.id,
+            supplier: 'Test Supplier',
+            quantity: 120,
+            unitPrice: 400,
+            sellingPrice: 450,
+        });
     }
 });
 
@@ -184,6 +197,7 @@ beforeEach( async() => {
     await pool.query(`DELETE FROM ${OrderServices.tableName};`);
     await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
     await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
 });
 
 afterAll( async() => {
@@ -215,7 +229,7 @@ it('when with valid data, will succeed', async() => {
         services: [{
             id: services[0].id,
             price: services[0].price,
-            products: [{
+            addedProducts: [{
                 id: products[0].id,
                 price: 250,
                 quantity: 1,
@@ -223,7 +237,7 @@ it('when with valid data, will succeed', async() => {
         },{
             id: services[0].id,
             price: services[0].price,
-            products: [{
+            addedProducts: [{
                 id: products[0].id,
                 price: 250,
                 quantity: 2,
@@ -247,7 +261,7 @@ it('when with valid data, will succeed', async() => {
     const newServices =  [{
         id: services[1].id,
         price: services[1].price,
-        products: [{
+        addedProducts: [{
             id: products[0].id,
             price: 300,
             quantity: 2,
@@ -255,7 +269,7 @@ it('when with valid data, will succeed', async() => {
     },{
         id: services[2].id,
         price: services[2].price,
-        products: [{
+        addedProducts: [{
             id: products[0].id,
             price: 300,
             quantity: 3,
