@@ -29,16 +29,16 @@ const validate = () => {
         body('services.*.id')
             .isUUID().withMessage('Services Id are invalid'), 
         body('services.*.price')
-            .isNumeric().withMessage('Services price are invalid'), 
+            .isFloat({ min: 1 }).withMessage('Services price are invalid'), 
         body('services.*.addedProducts')
             .default([])
             .isArray().withMessage('Products must be an array of object'), 
         body('services.*.addedProducts.*.id')
             .isUUID().withMessage('Product Id are invalid'), 
         body('services.*.addedProducts.*.price')
-            .isNumeric().withMessage('Product price are invalid'), 
+            .isFloat({ min: 1 }).withMessage('Product price are invalid'), 
         body('services.*.addedProducts.*.quantity')
-            .isNumeric().withMessage('Product quantity are invalid'), 
+            .isInt({ min: 1 }).withMessage('Product quantity are invalid'), 
         body('mechanics')
             .default([])
             .isArray().withMessage('Mechanics must be an array of object'), 
@@ -51,7 +51,7 @@ const validate = () => {
             .isIn(['AccountsReceivable', 'Online', 'Cash'])
                 .withMessage('Payment type must be a either of AccountsReceivable/Online/Cash'),
         body('payment.amount')
-            .isNumeric()
+            .isFloat({ min: 1 })
                 .withMessage('Payment Amount must be a number'),
         body('payment.bank')
             .optional()

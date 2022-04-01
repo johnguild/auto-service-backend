@@ -8,7 +8,7 @@ const validate = () => {
             .isIn(['AccountsReceivable', 'Online', 'Cash'])
                 .withMessage('type must be a either of AccountsReceivable/Online/Cash'),
         body('amount')
-            .isNumeric().withMessage('Amount must be a number'),
+            .isFloat({ min: 1 }).withMessage('Amount must be a number'),
         body('bank')
             .optional()
             .isLength({ max: 300 }).withMessage('Bank/E-Wallet must be 1-300 characters only'),

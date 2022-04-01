@@ -11,16 +11,16 @@ const validate = () => {
         body('services.*.id')
             .isUUID().withMessage('Services Id are invalid'), 
         body('services.*.price')
-            .isNumeric().withMessage('Services price are invalid'), 
+            .isFloat({ min: 1 }).withMessage('Services price are invalid'), 
         body('services.*.addedProducts')
             .default([])
             .isArray().withMessage('Products must be an array of object'), 
         body('services.*.addedProducts.*.id')
             .isUUID().withMessage('Product Id are invalid'), 
         body('services.*.addedProducts.*.price')
-            .isNumeric().withMessage('Product price are invalid'), 
+            .isFloat({ min: 1 }).withMessage('Product price are invalid'), 
         body('services.*.addedProducts.*.quantity')
-            .isNumeric().withMessage('Product quantity are invalid'), 
+            .isInt({ min: 1 }).withMessage('Product quantity are invalid'), 
    ]
 }
 
