@@ -161,11 +161,18 @@ const apiVersion = 'v1';
             /// check if acc exists
             const users = await userDAO.find(
                 where= {role: User.ROLE_PERSONNEL},
-                options= {limit: limit, skip: skip}
+                options= {
+                    limit: limit, 
+                    skip: skip,
+                    like: req.query.keyword ? req.query.keyword : undefined
+                }
             );
 
             const total = await userDAO.findCount(
-                where= {role: User.ROLE_PERSONNEL}
+                where= {role: User.ROLE_PERSONNEL},
+                options= {
+                    like: req.query.keyword ? req.query.keyword : undefined
+                }
             );
 
             // console.log(total);

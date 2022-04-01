@@ -2,34 +2,26 @@ const { getPool } = require('../db/postgres');
 const pool = getPool();
 
 const { toSnakeCase } = require('../utils/string');
-const User = require('./user.model');
-
+const Tool = require('./tool.model');
 
 
 /**
- * Insert a new instance of User
+ * Insert a new instance of Tool
  * 
  * @param {*} data 
- * @returns {User} User?
+ * @returns {Tool} Tool?
  */
 const insert = async(
     data = {
-        email, 
-        mobile, 
-        password, 
-        firstName, 
-        lastName, 
-        gender, 
-        birthDay,
-        role,
-        companyName,
-        companyNumber,
-        companyAddress,
-        companyTin,
+        name,
+        description,
+        quantity,
+        available,
+        cover, 
     }
 ) => {
 
-    let text = `INSERT INTO ${User.tableName} `;
+    let text = `INSERT INTO ${Tool.tableName} `;
 
     const columns = [], values = [], valueIndexes = [];
     /// collect all variables need to build the query
@@ -53,35 +45,26 @@ const insert = async(
     // console.log(values);
     const res = await pool.query({ text, values });
 
-    return res.rows.length > 0 ? User.fromDB(res.rows[0]) : null;
+    return res.rows.length > 0 ? Tool.fromDB(res.rows[0]) : null;
 }
 
 /**
- * Updates an instance of User
+ * Updates an instance of Tool
  * 
  * @param {*} data 
  * @param {*} where 
- * @returns {User} Array of User
+ * @returns {Tool} Array of Tool
  */
 const update = async(
     data = {
-        email, 
-        mobile, 
-        password, 
-        firstName, 
-        lastName, 
-        gender, 
-        birthDay,
-        isDisabled,
-        companyName,
-        companyNumber,
-        companyAddress,
-        companyTin,
+        name,
+        description,
+        quantity,
+        available,
+        cover, 
     }, 
     where = {
         id,
-        email, 
-        mobile,
     }
 ) => {
 
@@ -126,7 +109,7 @@ const update = async(
     });
      
     const text = `
-        UPDATE ${User.tableName} 
+        UPDATE ${Tool.tableName} 
         SET ${updateString} 
         WHERE ${whereString}
         RETURNING *;`;
@@ -136,26 +119,21 @@ const update = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => User.fromDB(u)) : [];
+        res.rows.map(u => Tool.fromDB(u)) : [];
 }
 
 
 const find = async(
     where = {
         id,
-        email,
-        mobile,
-        role,
-        isDisabled,
-        companyName,
-        companyNumber,
-        companyAddress,
-        companyTin,
+        name,
+        description,
+        quantity,
+        available,
     },
     options = {
         limit: undefined,
         skip: undefined,
-        like: undefined,
     }
 ) => {
 
@@ -175,24 +153,8 @@ const find = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'AND ' : ''; 
-        whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
+        whereString += `s.${prefix}${col} = ${valueIndexes[ind]} `;
     });
-
-
-    if (options.like) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
-        whereString += `  
-            (email ILIKE $${values.length + 1} OR 
-             mobile ILIKE $${values.length + 1} OR 
-             first_name ILIKE $${values.length + 1} OR 
-             last_name ILIKE $${values.length + 1} OR 
-             company_name ILIKE $${values.length + 1})
-        `;
-        values.push(`%${options.like}%`);
-    }
-
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
@@ -210,36 +172,31 @@ const find = async(
     }
      
     const text = `
-        SELECT * FROM ${User.tableName} 
+        SELECT s.* 
+        FROM ${Tool.tableName} as s 
         ${whereString} 
+        GROUP BY s.id
         ${optionString};`;
 
     // console.log(text);
     // console.log(values);
     const res = await pool.query({ text, values });
 
+    // console.dir(res.rows, {depth: null});
+
     return res.rows.length > 0 ? 
-        res.rows.map(u => User.fromDB(u)) : [];
+        res.rows.map(u => Tool.fromDB(u)) : [];
 
 }
-
-
 
 
 const findCount = async(
     where = {
         id,
-        email,
-        mobile,
-        role,
-        isDisabled,
-        companyName,
-        companyNumber,
-        companyAddress,
-        companyTin,
-    },
-    options = {
-        like: undefined,
+        name,
+        description,
+        quantity,
+        available,
     }
 ) => {
 
@@ -262,39 +219,23 @@ const findCount = async(
         whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
     });
 
-
-    if (options.like) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
-        whereString += `  
-            (email ILIKE $${values.length + 1} OR 
-             mobile ILIKE $${values.length + 1} OR 
-             first_name ILIKE $${values.length + 1} OR 
-             last_name ILIKE $${values.length + 1} OR 
-             company_name ILIKE $${values.length + 1})
-        `;
-        values.push(`%${options.like}%`);
-    }
-
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
     }
 
     const text = `
         SELECT COUNT(*) as total 
-        FROM ${User.tableName} 
+        FROM ${Tool.tableName} 
         ${whereString};`;
 
     // console.log(text);
     // console.log(values);
     const res = await pool.query({ text, values });
 
-    // console.log(res.rows);
-
     return res.rows.length > 0 ? res.rows[0].total : 0;
 
 }
+
 
 module.exports = {
     insert,

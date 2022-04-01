@@ -129,11 +129,18 @@ const apiVersion = 'v1';
             /// check if acc exists
             const services = await serviceDAO.find(
                 where= {},
-                options= {limit: limit, skip: skip}
+                options= {
+                    limit: limit, 
+                    skip: skip,
+                    like: req.query.keyword ? req.query.keyword : undefined
+                }
             );
 
             const total = await serviceDAO.findCount(
-                where= {}
+                where= {},
+                options= {
+                    like: req.query.keyword ? req.query.keyword : undefined
+                }
             );
 
             // console.log(total);

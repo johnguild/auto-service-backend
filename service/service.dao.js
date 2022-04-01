@@ -142,6 +142,7 @@ const find = async(
     options = {
         limit: undefined,
         skip: undefined,
+        like: undefined,
     }
 ) => {
 
@@ -163,6 +164,18 @@ const find = async(
         let prefix = ind > 0 ? 'AND ' : ''; 
         whereString += `s.${prefix}${col} = ${valueIndexes[ind]} `;
     });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (s.title ILIKE $${values.length + 1} OR 
+             s.description ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
@@ -224,6 +237,9 @@ const findCount = async(
         price,
         discountedPrice,
         isPublic,
+    },
+    options = {
+        like: undefined,
     }
 ) => {
 
@@ -245,6 +261,18 @@ const findCount = async(
         let prefix = ind > 0 ? 'AND ' : ''; 
         whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
     });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (title ILIKE $${values.length + 1} OR 
+             description ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;

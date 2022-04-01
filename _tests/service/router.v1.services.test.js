@@ -169,7 +169,7 @@ it('when with invalid price data, will fail', async() => {
 
 
     const response = await request(app)
-        .post(`/${v}/personnels`)
+        .post(`/${v}/services`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send(serviceData);
 
@@ -211,7 +211,7 @@ it('when with valid data but using customer account, will succeed', async() => {
     }
 
     const response = await request(app)
-        .post(`/${v}/personnels`)
+        .post(`/${v}/services`)
         .set('Authorization', `Bearer ${token}`)
         .send(serviceData);
 

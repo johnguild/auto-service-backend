@@ -144,6 +144,7 @@ const find = async(
     options = {
         limit: undefined,
         skip: undefined,
+        like: undefined,
     }
 ) => {
 
@@ -166,12 +167,31 @@ const find = async(
         whereString += `${prefix}p.${col} = ${valueIndexes[ind]} `;
     });
 
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (p.name ILIKE $${values.length + 1} OR 
+             p.sku ILIKE $${values.length + 1} OR 
+             p.description ILIKE $${values.length + 1} OR 
+             p.car_make ILIKE $${values.length + 1} OR 
+             p.car_type ILIKE $${values.length + 1} OR 
+             p.car_year ILIKE $${values.length + 1} OR 
+             p.car_part ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
+
+
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
     }
 
     let optionString = ' ';
     if (options != undefined) {
+
         if (options.limit) {
             optionString += `LIMIT ${options.limit} `;
         }
@@ -290,6 +310,9 @@ const findCount = async(
         carType,
         carYear,
         carPart,
+    },
+    options = {
+        like: undefined,
     }
 ) => {
 
@@ -311,6 +334,23 @@ const findCount = async(
         let prefix = ind > 0 ? 'AND ' : ''; 
         whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
     });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (name ILIKE $${values.length + 1} OR 
+             sku ILIKE $${values.length + 1} OR 
+             description ILIKE $${values.length + 1} OR 
+             car_make ILIKE $${values.length + 1} OR 
+             car_type ILIKE $${values.length + 1} OR 
+             car_year ILIKE $${values.length + 1} OR 
+             car_part ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;

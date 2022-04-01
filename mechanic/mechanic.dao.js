@@ -133,6 +133,7 @@ const find = async(
     options = {
         limit: undefined,
         skip: undefined,
+        like: undefined, 
     }
 ) => {
 
@@ -154,6 +155,20 @@ const find = async(
         let prefix = ind > 0 ? 'AND ' : ''; 
         whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
     });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (mobile ILIKE $${values.length + 1} OR 
+             first_name ILIKE $${values.length + 1} OR 
+             last_name ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
+
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
@@ -191,6 +206,9 @@ const findCount = async(
     where = {
         id,
         mobile,
+    },
+    options = {
+        like: undefined,
     }
 ) => {
 
@@ -212,6 +230,19 @@ const findCount = async(
         let prefix = ind > 0 ? 'AND ' : ''; 
         whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
     });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (mobile ILIKE $${values.length + 1} OR 
+             first_name ILIKE $${values.length + 1} OR 
+             last_name ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
