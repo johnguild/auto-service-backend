@@ -7,15 +7,14 @@ const validate = () => {
         body('supplier')
             .isLength({ min: 1, max: 300 }).withMessage('Name must be a 1-300 characters only'), 
         body('quantity')
-            .isInt()
-                .withMessage('Quantity must be an Int')
-            .isLength({ min: 1 }).withMessage('quantity minimum is 1'), 
+            .isInt({ min: 1 })
+                .withMessage('Quantity must be atleast 1'),
         body('unitPrice')
-            .isNumeric()
-                .withMessage('UnitPrice must be a number'), 
+            .isFloat({ min: 1 })
+                .withMessage('UnitPrice must be atleast 1'), 
         body('sellingPrice')
-            .isNumeric()
-                .withMessage('SellingPrice must be a number'), 
+            .isFloat({ min: 1 })
+                .withMessage('SellingPrice must be atleast 1'), 
    ]
 }
 

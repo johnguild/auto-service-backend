@@ -16,7 +16,9 @@ const validate = () => {
         body('mobile')
             .optional()
             .isNumeric()
-                .withMessage("Mobile must be a digit"),
+                .withMessage("Mobile must be a digit")
+            .isLength({ min: 11, max: 11 })
+                .withMessage("Mobile must be an 11 digit number"),
         body('birthDate')
             .optional()
             .isISO8601()

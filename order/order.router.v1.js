@@ -712,58 +712,7 @@ router.get(`/${apiVersion}/orders`,
         // console.log(req.params.id);
         try {
 
-            const getStartEnd = (dateTime, dateType) => {
-                let start, end;
-                const tmpDateTime = new Date(dateTime);
-                tmpDateTime.setHours(0,0,0,0);
-                switch(dateType) {
-                    case 'Year':
-                        const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-                        startOfYear.setHours(0,0,0,0);
-                        start = new Date(startOfYear).toISOString();
-                        const endOfYear = new Date(new Date().getFullYear(), 11, 31);
-                        endOfYear.setHours(23,59,59,999);
-                        end = new Date(endOfYear).toISOString();
-                        break;
-                    case 'Month':
-                        const startOfMonth = new Date(tmpDateTime.getFullYear(), tmpDateTime.getMonth(), 1);
-                        startOfMonth.setHours(0,0,0,0);
-                        start = new Date(startOfMonth).toISOString();
-                        const lastDay = new Date(tmpDateTime.getFullYear(), tmpDateTime.getMonth() + 1, 0);
-                        const endOfMonth = new Date(lastDay);
-                        endOfMonth.setHours(23,59,59,999);
-                        end = new Date(endOfMonth).toISOString();
-                        break;
-                    case 'Week':
-                        const today = tmpDateTime.getDate();
-                        const dayOfTheWeek = tmpDateTime.getDay();
-                        const firstDate = tmpDateTime.setDate(today - (dayOfTheWeek || 7));
-                        const startOfWeek = new Date(firstDate);
-                        startOfWeek.setHours(0,0,0,0);
-                        start = new Date(startOfWeek).toISOString();
-                        const lastDate = tmpDateTime.setDate(today - dayOfTheWeek + 7);
-                        const endOfWeek = new Date(lastDate);
-                        endOfWeek.setHours(23,59,59,999);
-                        end = new Date(endOfWeek).toISOString();
-                        break;
-                    case 'Day':
-                        start = new Date(tmpDateTime).toISOString();
-                        tmpDateTime.setHours(23,59,59,999);
-                        end = new Date(tmpDateTime).toISOString();
-                        break;
-                    case 'All':
-                    default:
-                        // set nothing
-                        const startOfProj = new Date(2022, 0, 1, 0, 0, 0, 0);
-                        start = new Date(startOfProj).toISOString();
-                        tmpDateTime.setHours(23,59,59,999);
-                        end = new Date(tmpDateTime).toISOString();
-                        break;
-                }
-                return { start, end }
-            }
-
-            const range = getStartEnd(new Date(), req.query.type);
+    
 
             // console.log(limit, skip);
             /// check if acc exists
@@ -773,8 +722,8 @@ router.get(`/${apiVersion}/orders`,
                     completed: req.query.completed,
                 },
                 opt ={
-                    startDate: range.start,
-                    endDate: range.end,
+                    startDate: req.query.startDate,
+                    endDate: req.query.endDate,
                 },
             );
 

@@ -2,9 +2,12 @@ const { body, query } = require('express-validator')
 
 const validate = () => {
     return [
-        query('type')
-            .isIn(['All', 'Day', 'Week', 'Month', 'Year'])
-                .withMessage('type must be Day/Week/Month/Year'), 
+        query('startDate')
+            .isISO8601()
+                .withMessage('Invalid Start Date'), 
+        query('endDate')
+            .isISO8601()
+                .withMessage('Invalid End Date'), 
         query('customerId')
             .optional()
             .isUUID().withMessage('Customer Id must be a uuid'),  
