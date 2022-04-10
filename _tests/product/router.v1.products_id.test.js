@@ -77,7 +77,6 @@ it('when with valid data, will succeed', async() => {
     /// create service
     const productData = {
         name: 'Product 1',
-        sku: '123456',
         description: 'Description 1',
     }
     const service = await productDAO.insert(productData);
@@ -86,7 +85,6 @@ it('when with valid data, will succeed', async() => {
 
     const newData = {
         name: 'Product 2',
-        sku: '123456',
         description: 'Description 3',
     }
 
@@ -108,7 +106,6 @@ it('when with non existing product id data, will fail', async() => {
 
     const newData = {
         name: 'Product 2',
-        sku: '123456',
         description: 'Description 3',
     }
 
@@ -128,7 +125,6 @@ it('when with invalid uuid data, will fail', async() => {
 
     const newData = {
         name: 'Product 2',
-        sku: '123456',
         description: 'Description 3',
     }
 

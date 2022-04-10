@@ -198,9 +198,9 @@ const find = async(
         FROM ${Service.tableName} as s
         LEFT OUTER JOIN (
             SELECT p.id, 
-            jsonb_build_object('id', p.id, 'name', p.name, 'sku', p.sku, 
-                'description', p.description, 'car_make', p.car_make, 'car_type', p.car_type, 
-                'car_year', p.car_year, 'car_part', p.car_part, 'stocks', 
+            jsonb_build_object('id', p.id, 'name', p.name, 'description', p.description, 
+                'car_make', p.car_make, 'car_type', p.car_type, 'car_year', p.car_year, 
+                'car_part', p.car_part, 'stocks', 
                 CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.stock) END
                 ) as prdct  
             FROM ${Product.tableName} as p 

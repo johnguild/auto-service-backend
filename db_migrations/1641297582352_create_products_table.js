@@ -7,7 +7,6 @@ const up = async() => {
         .query(`CREATE TABLE ${Product.tableName} (
             id uuid DEFAULT uuid_generate_v4 (),
             name VARCHAR, 
-            sku VARCHAR UNIQUE, 
             description VARCHAR, 
             PRIMARY KEY(id)
         );`);

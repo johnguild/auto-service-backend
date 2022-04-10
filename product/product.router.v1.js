@@ -27,21 +27,9 @@ const apiVersion = 'v1';
     async (req, res) => {
         try {
 
-            /// check if sku is available 
-            const dupSKU = await productDAO.find(where = {
-                sku: req.body.sku,
-            });
-
-            if (dupSKU.length > 0) {
-                return req.api.status(400).errors([
-                    'SKU already taken!'
-                ]).send();
-            }
-
             const product = await productDAO.insert(
                 data = {
                     name: req.body.name,
-                    sku: req.body.sku,
                     description: req.body.description,
                     carMake: req.body.carMake,
                     carType: req.body.carType,
@@ -92,29 +80,9 @@ const apiVersion = 'v1';
 
             const s = products[0];
 
-            /// check if sku is available 
-            const dupSKU = await productDAO.find(where = {
-                sku: req.body.sku,
-            });
-
-            if (dupSKU.length > 0) {
-                let alreadyTaken = false;
-                dupSKU.forEach(prod => {
-                    if (prod.id != s.id && prod.sku == req.body.sku) {
-                        alreadyTaken = true;
-                    }
-                });
-                if (alreadyTaken) {
-                    return req.api.status(400).errors([
-                        'SKU already taken!'
-                    ]).send();
-                }
-            }
-
             const updatedProducts = await productDAO.update(
                 data= {
                     name: req.body.name,
-                    sku: req.body.sku,
                     description: req.body.description,
                     carMake: req.body.carMake,
                     carType: req.body.carType,
@@ -212,7 +180,6 @@ const apiVersion = 'v1';
             const products = await productDAO.findLike(
                 where= {
                     name: keyword,
-                    sku: keyword,
                     description: keyword,
                 },
                 options= {limit: limit, skip: 0}

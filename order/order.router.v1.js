@@ -160,6 +160,15 @@ const apiVersion = 'v1';
                         referenceNumber: req.body.payment.type == 'Online' 
                             ? req.body.payment.referenceNumber
                             : undefined,
+                        accountName: req.body.payment.type == 'Cheque' 
+                            ? req.body.payment.accountName
+                            : undefined,
+                        accountNumber: req.body.payment.type == 'Cheque' 
+                            ? req.body.payment.accountNumber
+                            : undefined,
+                        chequeNumber: req.body.payment.type == 'Cheque' 
+                            ? req.body.payment.chequeNumber
+                            : undefined,
                         amount: req.body.payment.amount,
                         dateTime: new Date().toISOString(),
                     }
@@ -579,12 +588,18 @@ router.get(`/${apiVersion}/orders`,
             // console.log(limit, skip);
             /// check if acc exists
             const allOrders = await orderDAO.find(
-                where ={},
+                where ={
+                    customerId: req.query.customerId, 
+                    completed: req.query.completed,
+                },
                 opt ={limit: limit, skip: skip},
             );
-
+            
             const total = await orderDAO.findCount(
-                where= {}
+                where= {
+                    customerId: req.query.customerId, 
+                    completed: req.query.completed,
+                }
             );
 
             // console.log(total);
@@ -597,7 +612,7 @@ router.get(`/${apiVersion}/orders`,
                 .send(allOrders);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

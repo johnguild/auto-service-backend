@@ -98,27 +98,22 @@ it('when getting using manager account, will succeed', async() => {
     const productData = [
         {
             name: 'Product 1',
-            sku: '000001',
             description: 'Description 1',
         },
         {
             name: 'Product 2',
-            sku: '000002',
             description: 'Description 1',
         },
         {
             name: 'Product 3',
-            sku: '000003',
             description: 'Description 1',
         },
         {
             name: 'Product 4',
-            sku: '000004',
             description: 'Description 1',
         },
         {
             name: 'Product 5',
-            sku: '000005',
             description: 'Description 1',
         },
         
@@ -147,27 +142,22 @@ it('when getting using personnel account, will succeed', async() => {
     const productData = [
         {
             name: 'Product 1',
-            sku: '000001',
             description: 'Description 1',
         },
         {
             name: 'Product 2',
-            sku: '000002',
             description: 'Description 1',
         },
         {
             name: 'Product 3',
-            sku: '000003',
             description: 'Description 1',
         },
         {
             name: 'Product 4',
-            sku: '000004',
             description: 'Description 1',
         },
         {
             name: 'Product 5',
-            sku: '000005',
             description: 'Description 1',
         },
         
@@ -196,27 +186,22 @@ it('when getting with stocks, will succeed', async() => {
     const productData = [
         {
             name: 'Product 1',
-            sku: '000001',
             description: 'Description 1',
         },
         {
             name: 'Product 2',
-            sku: '000002',
             description: 'Description 1',
         },
         {
             name: 'Product 3',
-            sku: '000003',
             description: 'Description 1',
         },
         {
             name: 'Product 4',
-            sku: '000004',
             description: 'Description 1',
         },
         {
             name: 'Product 5',
-            sku: '000005',
             description: 'Description 1',
         },
         
@@ -268,27 +253,22 @@ it('when getting with page and limit, will succeed', async() => {
     const productData = [
         {
             name: 'Product 1',
-            sku: '000001',
             description: 'Description 1',
         },
         {
             name: 'Product 2',
-            sku: '000002',
             description: 'Description 1',
         },
         {
             name: 'Product 3',
-            sku: '000003',
             description: 'Description 1',
         },
         {
             name: 'Product 4',
-            sku: '000004',
             description: 'Description 1',
         },
         {
             name: 'Product 5',
-            sku: '000005',
             description: 'Description 1',
         },
         

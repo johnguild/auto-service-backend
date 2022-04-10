@@ -9,6 +9,9 @@ class OrderPayment {
         type,
         bank,
         reference_number,
+        account_name, 
+        account_number, 
+        cheque_number, 
         amount,
         date_time
     }) {
@@ -18,6 +21,9 @@ class OrderPayment {
             type,
             bank,
             referenceNumber: reference_number,
+            accountName: account_name,
+            accountNumber: account_number,
+            chequeNumber: cheque_number,
             amount,
             dateTime: date_time,
         });
@@ -31,6 +37,9 @@ class OrderPayment {
         type,
         bank,
         referenceNumber,
+        accountName, 
+        accountNumber, 
+        chequeNumber, 
         amount,
         dateTime,
     }) {
@@ -41,6 +50,9 @@ class OrderPayment {
         this.type = type;
         this.bank = bank;
         this.referenceNumber = referenceNumber;
+        this.accountName = accountName; 
+        this.accountNumber = accountNumber; 
+        this.chequeNumber = chequeNumber; 
     }
     
 }   

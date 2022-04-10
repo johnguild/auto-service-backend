@@ -13,6 +13,7 @@ const orderServicesMigration0 = require('../../db_migrations/1642766434532_creat
 const orderProductsMigration0 = require('../../db_migrations/1642766700669_create_order_products_table');
 const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
 const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
+const addCompanyDetailsOnUserMigration0 = require('../../db_migrations/1647518448506_add_company_details_on_users_table');
 
 const User = require('../../user/user.model');
 const Service = require('../../service/service.model');
@@ -92,6 +93,7 @@ beforeAll( async() => {
     await orderMechanicsMigration0.down();
     // clear db
     await userMigration0.up();
+    await addCompanyDetailsOnUserMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
     await mechanicMigration0.up();
@@ -285,7 +287,6 @@ describe('insertOrderProducts', () => {
 
         const product = await productDAO.insert({
             name: 'Product 1',
-            sku: '123456',
             description: 'Description 1',
         });
         const productPrice = 333;
@@ -422,6 +423,44 @@ describe('insertOrderPayments', () => {
         try {
             orderPayment = await orderDAO.insertOrderPayment(paymentData);
 
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        expect(orderPayment.orderId).toBe(paymentData.orderId);
+        expect(orderPayment.type).toBe(paymentData.type);
+        expect(parseFloat(orderPayment.amount)).toBe(paymentData.amount);
+        expect(orderPayment.dateTime.toISOString()).toBe(paymentData.dateTime);
+    });
+
+    it('when creating with valid and Cheque type, will succeed', async() => {
+
+        const order = await orderDAO.insertOrder({
+            customerId: customerUser.id,
+            total: 1200,
+            carMake: 'Toyota',
+            carType: '2020 Camry',
+            carYear: '2000',
+            carPlate: '1234-ABCD',
+            carOdometer: '6700',
+        });
+
+        const paymentData = {
+            orderId: order.id, 
+            type: 'Cheque',
+            accountName: 'TestName',
+            accountNumber: '091209312',
+            chequeNumber: '1239123', 
+            amount: 500, 
+            dateTime: new Date().toISOString(), 
+        }
+
+
+        let orderPayment;
+        let err = null;
+        try {
+            orderPayment = await orderDAO.insertOrderPayment(paymentData);
         } catch (error) {
             err = error;
         }
@@ -915,7 +954,7 @@ describe('total', () => {
 
 describe('findMechanicsWithOngoing', () => {
 
-    it.only('when finding findMechanicsWithOngoing , will succeed', async() => {
+    it('when finding findMechanicsWithOngoing , will succeed', async() => {
 
         const preDate = new Date();
         /// create products first

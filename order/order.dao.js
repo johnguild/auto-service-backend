@@ -156,6 +156,9 @@ const insertOrder = async(
         type,
         bank,
         referenceNumber,
+        accountName, 
+        accountNumber, 
+        chequeNumber, 
         amount, 
         dateTime, 
     }
@@ -370,7 +373,7 @@ const find = async(
      
     let text = `
         SELECT o.*, (SELECT json_build_object('id', u.id, 'first_name', u.first_name, 'last_name', u.last_name, 
-                'email', u.email, 'mobile', u.mobile) as customer 
+                'email', u.email, 'mobile', u.mobile, 'company_name', u.company_name) as customer 
                 FROM ${User.tableName} as u 
                 WHERE u.id = o.customer_id 
             ) as customer, 
@@ -394,8 +397,9 @@ const find = async(
         ) as pr ON pr.order_id = o.id 
         LEFT OUTER JOIN (
             SELECT p.order_id, jsonb_build_object('id', p.id, 'amount', p.amount, 
-                'type', p.type, 'bank', p.bank, 'reference_number', p.reference_number,
-                'date_time', p.date_time) as pymnt  
+                'type', p.type, 'bank', p.bank, 'reference_number', p.reference_number, 
+                'account_name', p.account_name, 'account_number', p.account_number,
+                'cheque_number', p.cheque_number, 'date_time', p.date_time) as pymnt  
             FROM ${OrderPayments.tableName} as p 
         ) as py ON py.order_id = o.id 
         LEFT OUTER JOIN (
@@ -406,7 +410,7 @@ const find = async(
         ) as me ON me.order_id = o.id  
         ${whereString} `;
     text += 'GROUP BY o.id ';
-    text += 'ORDER BY o.completed ASC ';
+    text += 'ORDER BY o.completed ASC, created_at DESC ';
     text += `${optionString} ;`;
 
         
@@ -443,7 +447,7 @@ const findCount = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'AND ' : ''; 
-        whereString += `o.${prefix}${col} = ${valueIndexes[ind]} `;
+        whereString += `${prefix}o.${col} = ${valueIndexes[ind]} `;
     });
 
     if (whereString.trim() != '') {

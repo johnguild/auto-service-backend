@@ -88,6 +88,10 @@ class Order {
         this.laborTotal = 0;
         this.partsTotal = 0;
         this.paymentsTotal = 0;
+        this.cashTotal = 0;
+        this.onlineTotal = 0;
+        this.accountsReceivableTotal = 0;
+        this.chequeTotal = 0;
 
 
         // console.dir(allProducts, {depth: null});
@@ -130,7 +134,23 @@ class Order {
         }
         
         for (const payment of payments) {
-            this.paymentsTotal += parseFloat(payment.amount);
+            const pAmount = parseFloat(payment.amount);
+            this.paymentsTotal += pAmount;
+            switch(payment.type) {
+                case 'Online':
+                    this.onlineTotal += pAmount;
+                    break;
+                case 'AccountsReceivable':
+                    this.accountsReceivableTotal += pAmount;
+                    break;
+                case 'Cheque':
+                    this.chequeTotal += pAmount;
+                    break;
+                case 'Cash':
+                default:
+                    this.cashTotal += pAmount;
+                    break;
+            }
         }
 
     }

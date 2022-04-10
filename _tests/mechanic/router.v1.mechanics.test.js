@@ -62,7 +62,7 @@ afterAll( async () => {
 it('when with valid data, will succeed', async() => {
 
     const mechanicData = {
-        mobile: '639359372676',
+        mobile: '09359372676',
         firstName: 'Mechanic',
         lastName: 'One',
         birthDate: new Date(Date.now()).toISOString(),

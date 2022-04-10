@@ -105,13 +105,11 @@ it('when with valid data with products, will succeed', async() => {
 
     const product1 = await productDAO.insert({
         name: 'test prod',
-        sku: '00001',
         description: 'desc',
     });
 
     const product2 = await productDAO.insert({
         name: 'test prod 2',
-        sku: '00002',
         description: 'desc',
     });
 
@@ -145,6 +143,7 @@ it('when with required only data, will succeed', async() => {
     const serviceData = {
         title: 'Repair Service',
         description: 'Something here',
+        price: 120, 
     }
 
     const response = await request(app)

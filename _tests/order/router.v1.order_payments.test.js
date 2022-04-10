@@ -14,6 +14,7 @@ const orderServicesMigration0 = require('../../db_migrations/1642766434532_creat
 const orderProductsMigration0 = require('../../db_migrations/1642766700669_create_order_products_table');
 const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
 const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
+const addCompanyDetailsOnUserMigration0 = require('../../db_migrations/1647518448506_add_company_details_on_users_table');
 
 
 const User = require('../../user/user.model');
@@ -106,6 +107,7 @@ beforeAll( async() => {
     await orderMechanicsMigration0.down();
     // clear db
     await userMigration0.up();
+    await addCompanyDetailsOnUserMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
     await stockMigration0.up();
@@ -177,17 +179,14 @@ beforeAll( async() => {
     for (const product of [
         {
             name: 'Product 1',
-            sku: '123456',
             description: 'Description 1',
         },
         {
             name: 'Product 2',
-            sku: '0003123123',
             description: 'Description 2',
         },
         {
             name: 'Product 3',
-            sku: '000414444',
             description: 'Description 3',
         },
     ]) {
@@ -365,4 +364,69 @@ it('when with valid data with Online, will succeed', async() => {
 
 });
 
+it('when with valid data with Cheque, will succeed', async() => {
+
+
+    // create services first
+    const orderData = {
+        customerId: customerUser.id,
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        receiveDate: new Date().toISOString(),
+        warrantyEnd: new Date().toISOString(),
+        services: [{
+            id: services[0].id,
+            price: services[0].price,
+            products: [{
+                id: products[0].id,
+                price: products[1].price,
+                quantity: 1,
+            }]
+        },{
+            id: services[0].id,
+            price: services[0].price,
+            products: [{
+                id: products[0].id,
+                price: products[1].price,
+                quantity: 2,
+            }]
+        }],
+        payment: {
+            type: 'Cheque',
+            accountName: 'TestName',
+            accountNumber: '0981276123',
+            chequeNumber: '000123123',
+            amount: 300
+        }
+    }
+
+    const orderResponse = await request(app)
+        .post(`/${v}/orders`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(orderData);
+
+    // console.dir(orderResponse.body, { depth: null });
+
+    const paymentData = {
+        type: 'Cheque',
+        accountName: 'TestName',
+        accountNumber: '88989898',
+        chequeNumber: '00333123123',
+        amount: 12000,
+    }
+
+    const paymentResponse = await request(app)
+        .post(`/${v}/orders/${orderResponse.body.data.id}/payments`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(paymentData);
+
+    // console.dir(paymentResponse.body, { depth: null });
+
+    expect(paymentResponse.status).toBe(200);
+    expect(paymentResponse.body.data).not.toBeNull();
+
+});
 

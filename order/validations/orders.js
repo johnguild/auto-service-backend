@@ -48,19 +48,44 @@ const validate = () => {
             .notEmpty()
                 .withMessage('Payment is requried!'),
         body('payment.type')
-            .isIn(['AccountsReceivable', 'Online', 'Cash'])
-                .withMessage('Payment type must be a either of AccountsReceivable/Online/Cash'),
+            .isIn(['AccountsReceivable', 'Online', 'Cash', 'Cheque'])
+                .withMessage('Payment type must be a either of AccountsReceivable/Online/Cash/Cheque'),
         body('payment.amount')
             .isFloat({ min: 1 })
                 .withMessage('Payment Amount must be a number'),
         body('payment.bank')
-            .optional()
-            .isLength({ max: 300 })
+            .if(body('payment.type').equals('Online')) // if payment.type is Online
+            .notEmpty() // then payment.bank is also required
+            .isLength({ max: 300 }) // along with the rest of the validation
                 .withMessage('Payment Bank/E-Wallet must be 1-300 characters only'),
         body('payment.referenceNumber')
-            .optional()
-            .isLength({ max: 300 })
+            .if(body('payment.type').equals('Online')) // if payment.type is Online
+            .notEmpty() // then payment.referenceNumber is also required
+            .isLength({ max: 300 }) // along with the rest of the validation
                 .withMessage('Payment Reference Number must be 1-300 characters only'),
+        body('payment.accountName')
+            .if(body('payment.type').equals('Cheque')) // if payment.type is Cheque
+            .notEmpty() // then payment.accountName is also required
+            .isLength({ max: 300 }) // along with the rest of the validation
+                .withMessage('Payment Account Name must be 1-300 characters only'),
+        body('payment.accountNumber')
+            .if(body('payment.type').equals('Cheque')) // if payment.type is Cheque
+            .notEmpty() // then payment.accountNumber is also required
+            .isLength({ max: 300 }) // along with the rest of the validation
+                .withMessage('Payment Account Number must be 1-300 characters only'),
+        body('payment.chequeNumber')
+            .if(body('payment.type').equals('Cheque')) // if payment.type is Cheque
+            .notEmpty() // then payment.accountNumber is also required
+            .isLength({ max: 300 }) // along with the rest of the validation
+                .withMessage('Payment Cheque Number must be 1-300 characters only'),
+        // body('payment.bank')
+        //     .optional()
+        //     .isLength({ max: 300 })
+        //         .withMessage('Payment Bank/E-Wallet must be 1-300 characters only'),
+        // body('payment.referenceNumber')
+        //     .optional()
+        //     .isLength({ max: 300 })
+        //         .withMessage('Payment Reference Number must be 1-300 characters only'),
     ]
 }
 

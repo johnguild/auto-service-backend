@@ -8,7 +8,6 @@ class Product {
     static fromDB({
         id, 
         name,
-        sku,
         description, 
         car_make,
         car_type,
@@ -19,7 +18,6 @@ class Product {
         const instance = new this({
             id,  
             name,
-            sku,
             description,
             carMake: car_make,
             carType: car_type,
@@ -36,7 +34,6 @@ class Product {
     constructor({ 
         id,  
         name,
-        sku,
         description,
         carMake,
         carType,
@@ -46,7 +43,6 @@ class Product {
     }) {
         this.id = id;
         this.name = name;
-        this.sku = sku;
         this.description = description;
         this.carMake = carMake;
         this.carType = carType;

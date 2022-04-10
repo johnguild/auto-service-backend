@@ -32,7 +32,6 @@ const personnelData = {
 
 const productData = {
     name: 'Product 1',
-    sku: '123456',
     description: 'Description 1',
 }
 

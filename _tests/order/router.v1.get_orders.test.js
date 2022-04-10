@@ -14,6 +14,7 @@ const orderServicesMigration0 = require('../../db_migrations/1642766434532_creat
 const orderProductsMigration0 = require('../../db_migrations/1642766700669_create_order_products_table');
 const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
 const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
+const addCompanyDetailsOnUserMigration0 = require('../../db_migrations/1647518448506_add_company_details_on_users_table');
 
 const User = require('../../user/user.model');
 const Service = require('../../service/service.model');
@@ -90,6 +91,7 @@ beforeAll( async() => {
     await orderMechanicsMigration0.down();
     // clear db
     await userMigration0.up();
+    await addCompanyDetailsOnUserMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
     await stockMigration0.up();
@@ -162,17 +164,14 @@ beforeAll( async() => {
     for (const product of [
         {
             name: 'Product 1',
-            sku: '123456',
             description: 'Description 1',
         },
         {
             name: 'Product 2',
-            sku: '0003123123',
             description: 'Description 2',
         },
         {
             name: 'Product 3',
-            sku: '000414444',
             description: 'Description 3',
         },
     ]) {

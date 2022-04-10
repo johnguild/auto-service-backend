@@ -96,7 +96,6 @@ describe('insert', () => {
         // insert products first
         const product1 = await productDAO.insert({
             name: 'test prod',
-            sku: '00001',
             description: 'desc',
         });
 
@@ -299,14 +298,12 @@ describe('find', () => {
 
         const product1 = await productDAO.insert({
             name: 'test prod',
-            sku: '00001',
             description: 'desc',
         });
 
 
         const product2 = await productDAO.insert({
             name: 'test prod 2',
-            sku: '00002',
             description: 'desc',
         });
 

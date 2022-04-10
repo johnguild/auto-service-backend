@@ -16,7 +16,6 @@ const Stock = require('../stock/stock.model');
 const insert = async(
     data = {
         name,
-        sku,
         description,
         carMake,
         carType,
@@ -62,7 +61,6 @@ const insert = async(
 const update = async(
     data = {        
         name,
-        sku,
         description,
         carMake,
         carType,
@@ -134,7 +132,6 @@ const find = async(
     where = {
         id,    
         name,
-        sku,
         description,
         carMake,
         carType,
@@ -229,7 +226,6 @@ const find = async(
 const findLike = async(
     where = { 
         name,
-        sku,
         description,
         carMake,
         carType,
@@ -304,7 +300,6 @@ const findCount = async(
     where = {
         id,    
         name,
-        sku,
         description,
         carMake,
         carType,

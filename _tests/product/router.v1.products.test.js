@@ -75,7 +75,6 @@ it('when with valid data, will succeed', async() => {
 
     const productData = {
         name: 'Product 1',
-        sku: '123456',
         description: 'Description 1',
     }
 
@@ -95,8 +94,31 @@ it('when with required only data, will succeed', async() => {
 
     const productData = {
         name: 'Name 1',
-        sku: '1234',
         description: 'Something here',
+    }
+
+    const response = await request(app)
+        .post(`/${v}/products`)
+        .set('Authorization', `Bearer ${personnelToken}`)
+        .send(productData);
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+
+});
+
+it('when with carMake only, will succeed', async() => {
+
+    /// Note: undefined is accepted, but not null
+    const productData = {
+        name: 'Name 1',
+        description: 'Something here',
+        carMake: 'Test',
+        // carType: undefined,
+        // carYear: undefined,
+        // carPart: undefined,
     }
 
     const response = await request(app)
@@ -115,7 +137,6 @@ it('when with no description data, will fail', async() => {
 
     const productData = {
         name: 'Name',
-        sku: '1234',
         // description: 100.54,
     }
 
@@ -155,7 +176,6 @@ it('when with valid data but using customer account, will succeed', async() => {
 
     const productData = {
         name: 'Product 1',
-        sku: '123456',
         description: 'Description 1',
     }
 

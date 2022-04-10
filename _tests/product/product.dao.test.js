@@ -14,7 +14,6 @@ const stockDAO = require('../../stock/stock.dao');
 
 const product1Data = {
     name: 'Product 1',
-    sku: '123456',
     description: 'Description 1',
 }
 
@@ -80,24 +79,9 @@ describe('insert', () => {
         // assert product saved
         const res = await pool.query(`SELECT * FROM ${Product.tableName};`);
         expect(res.rows[0].name).toBe(product1Data.name);
-        expect(res.rows[0].sku).toBe(product1Data.sku);
         expect(res.rows[0].description).toBe(product1Data.description);
     });
 
-    it('when creating with duplicate sku, will fail', async() => {
-
-        await productDAO.insert(product1Data);
-
-        let err = null;
-        try {
-            await productDAO.insert(product1Data);
-
-        } catch (error) {
-            err = error;
-        }
-        expect(err).not.toBeNull();
-
-    });
 });
 
 describe('update', () => {
@@ -139,17 +123,15 @@ describe('update', () => {
 
 describe('find', () => {
 
-    it('when finding by sku on records, will succeed', async() => {
+    it('when finding by name on records, will succeed', async() => {
         /// create products first
         const productData = [
             {
                 name: 'Product 1',
-                sku: '123456',
                 description: 'Description 1',
             },
             {
                 name: 'Product 2',
-                sku: '0003123123',
                 description: 'Description 2',
             },
         ]
@@ -163,11 +145,10 @@ describe('find', () => {
         let err = null;
         try {
             const search1 = await productDAO.find( 
-                where= {sku: productData[1].sku } 
+                where= {name: productData[1].name } 
             );
 
             expect(search1.length).toBe(1);
-            expect(search1[0].sku).toBe(productData[1].sku);
 
             // console.log(searchRes[0]);
         } catch (error) {
@@ -183,17 +164,14 @@ describe('find', () => {
         const productData = [
             {
                 name: 'Product 1',
-                sku: '123456',
                 description: 'Description 1',
             },
             {
                 name: 'Product 2',
-                sku: '0003123123',
                 description: 'Description 2',
             },
             {
                 name: 'Product 3',
-                sku: '000414444',
                 description: 'Description 3',
             },
         ]
@@ -227,17 +205,14 @@ describe('find', () => {
         const productData = [
             {
                 name: 'Product 1',
-                sku: '123456',
                 description: 'Description 1',
             },
             {
                 name: 'Product 2',
-                sku: '0003123123',
                 description: 'Description 2',
             },
             {
                 name: 'Product 3',
-                sku: '000414444',
                 description: 'Description 3',
             },
         ]
@@ -271,17 +246,14 @@ describe('find', () => {
         const productData = [
             {
                 name: 'Product 1',
-                sku: '123456',
                 description: 'Description 1',
             },
             {
                 name: 'Product 2',
-                sku: '0003123123',
                 description: 'Description 2',
             },
             {
                 name: 'Product 3',
-                sku: '000414444',
                 description: 'Description 3',
             },
         ]
@@ -313,22 +285,19 @@ describe('find', () => {
 
 describe('findLike', () => {
 
-    it('when finding by sku on records, will succeed', async() => {
+    it('when finding by name on records, will succeed', async() => {
         /// create products first
         const productData = [
             {
                 name: 'Product 1',
-                sku: '123456',
                 description: 'Description 1',
             },
             {
                 name: 'Product 2',
-                sku: '0003123123',
                 description: 'Description 2',
             },
             {
                 name: 'Product 3',
-                sku: '000767676',
                 description: 'Description 3',
             },
         ]
@@ -343,9 +312,8 @@ describe('findLike', () => {
         try {
             const search1 = await productDAO.findLike( 
                 where= {
-                    name: '123',
-                    sku: '123',
-                    description: '123',
+                    name: '2',
+                    description: '3',
                 } 
             );
 
@@ -359,22 +327,19 @@ describe('findLike', () => {
 
     });
     
-    it('when finding by sku on records, will succeed', async() => {
+    it('when finding by name on records, will succeed', async() => {
         /// create products first
         const productData = [
             {
                 name: 'Product 1',
-                sku: '123456',
                 description: 'Description 1',
             },
             {
                 name: 'Product 2',
-                sku: '0003123123',
                 description: 'Description 2',
             },
             {
                 name: 'Product 3',
-                sku: '000767676',
                 description: 'Sample 3',
             },
         ]
@@ -389,9 +354,8 @@ describe('findLike', () => {
         try {
             const search1 = await productDAO.findLike( 
                 where= {
-                    name: 'Sample',
-                    sku: 'Sample',
-                    description: 'Sample',
+                    name: '1',
+                    description: '1',
                 } 
             );
 
