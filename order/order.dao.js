@@ -576,6 +576,99 @@ const findMechanicsWithOngoing = async() => {
     return formattedData.map(u => Mechanic.fromDB(u));
 }
 
+
+const findByMechanic = async(
+    where = {
+        mechanicId,
+    },
+    opt= {
+        limit: undefined,
+        skip: undefined,
+    }
+) => {
+
+    if (!where.mechanicId) {
+        throw Error('where.mechanicId is required');
+    }
+
+    let whereString = `WHERE (SELECT COUNT(*)
+            FROM ${OrderMechanics.tableName} om 
+            WHERE om.order_id = o.id 
+                AND om.mechanic_id = '${where.mechanicId}' 
+        ) > 0 `;
+    let optionString = ' ';
+    if (opt != undefined) {
+        if (opt.limit) {
+            optionString += `LIMIT ${opt.limit} `;
+        }
+
+        if (opt.skip != undefined) {
+            optionString += `OFFSET ${opt.skip} `;
+        }
+
+        if (opt.startDate != undefined && opt.endDate != undefined) {
+            if (whereString.trim() == '') {
+                whereString = `WHERE o.created_at >= '${opt.startDate}' 
+                    AND o.created_at <= '${opt.endDate}'`;
+            } else {
+                whereString += `AND o.created_at >= '${opt.startDate}' 
+                    AND o.created_at <= '${opt.endDate}'`;
+            }
+        }
+    }
+    
+    let text = `SELECT o.*, (SELECT json_build_object('id', u.id, 'first_name', u.first_name, 'last_name', u.last_name, 
+                'email', u.email, 'mobile', u.mobile, 'company_name', u.company_name) as customer 
+                FROM ${User.tableName} as u 
+                WHERE u.id = o.customer_id 
+            ) as customer 
+        FROM ${Order.tableName} as o 
+        ${whereString} 
+        GROUP BY o.id 
+        ORDER BY o.completed ASC, created_at DESC 
+        ${optionString} 
+    `;
+        
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => Order.fromDB(u)) : [];
+}
+
+
+
+const findCountByMechanic = async(
+    where = {
+        mechanicId,
+    },
+) => {
+
+    if (!where.mechanicId) {
+        throw Error('where.mechanicId is required');
+    }
+
+    let whereString = `WHERE (SELECT COUNT(*)
+            FROM ${OrderMechanics.tableName} om 
+            WHERE om.order_id = o.id 
+                AND om.mechanic_id = '${where.mechanicId}' 
+        ) > 0 `;
+
+    
+    let text = `SELECT COUNT(*) as total 
+        FROM ${Order.tableName} as o 
+        ${whereString} 
+    `;
+        
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+    return res.rows.length > 0 ? res.rows[0].total : 0;
+}
+
 module.exports = {
     insertOrder,
     insertOrderService,
@@ -587,5 +680,7 @@ module.exports = {
     findCount,
     total,
     findMechanicsWithOngoing,
-    updateOrderTotal
+    updateOrderTotal,
+    findByMechanic, 
+    findCountByMechanic, 
 }

@@ -9,6 +9,7 @@ const servicesValidation = require('./validations/services');
 const completeValidation = require('./validations/complete');
 // const ordersIdValidation = require('./validations/orders_id');
 const getOrdersValidation = require('./validations/get_orders');
+const getOrdersByMechanicValidation = require('./validations/get_orders_by_mechanic');
 const getOrdersTotalValidation = require('./validations/get_orders_total');
 const getOrdersReportValidation = require('./validations/get_orders_report');
 const validationCheck = require('../middlewares/validationCheck');
@@ -757,6 +758,53 @@ router.get(`/${apiVersion}/orders`,
     }
 );
 
+
+/**
+ * Get Order by Mechanic
+ */
+ router.get(`/${apiVersion}/orders-by-mechanic`, 
+    api('Get Order by Mechanic'),
+    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    getOrdersByMechanicValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            let limit = req.query.limit;
+            let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
+          
+            // console.log(limit, skip);
+            /// check if acc exists
+            const allOrders = await orderDAO.findByMechanic(
+                where ={
+                    mechanicId: req.query.mechanicId, 
+                },
+                opt ={limit: limit, skip: skip},
+            );
+            
+            const total = await orderDAO.findCountByMechanic(
+                where= {
+                    mechanicId: req.query.mechanicId, 
+                }
+            );
+
+            // console.log(total);
+            // console.dir(allOrders, {depth:null});
+            return req.api.status(200)
+                .page(req.query.page)
+                .resultCount(allOrders.length)
+                .total(total)
+                .send(allOrders);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+    }
+);
 
 /**
  * Get Order Mechanic Report Data

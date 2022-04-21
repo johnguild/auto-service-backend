@@ -107,7 +107,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/mechanics`, 
     api('Get Mechanic Listing'),
-    auth([User.ROLE_MANAGER]),
+    auth([User.ROLE_MANAGER, User.ROLE_CLERK]),
     getMechanicsValidation(),
     validationCheck(),
     async (req, res) => {

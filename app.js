@@ -12,6 +12,7 @@ const CashRouter = require('./cash/cashes.router.v1');
 const UsageRouter = require('./cash/usage.router.v1');
 const StockRouter = require('./stock/stock.router.v1');
 const ToolRouter = require('./tool/tool.router.v1');
+const LendRouter = require('./lend/lend.router.v1');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use(CashRouter);
 app.use(UsageRouter);
 app.use(StockRouter);
 app.use(ToolRouter);
+app.use(LendRouter);
 
 var http = require('http').Server(app);
 

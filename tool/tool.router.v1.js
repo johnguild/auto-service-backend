@@ -120,15 +120,23 @@ const apiVersion = 'v1';
 
             let limit = req.query.limit;
             let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
+            const likeQry = req.query.keyword ? req.query.keyword : undefined;
             
             /// check if acc exists
             const tools = await toolDAO.find(
                 where= {},
-                options= {limit: limit, skip: skip}
+                options= {
+                    limit: limit, 
+                    skip: skip, 
+                    like: likeQry
+                }
             );
 
             const total = await toolDAO.findCount(
-                where= {}
+                where= {},
+                options= {
+                    like: likeQry
+                }
             );
 
             // console.log(total);

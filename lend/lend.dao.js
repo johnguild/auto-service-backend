@@ -2,26 +2,26 @@ const { getPool } = require('../db/postgres');
 const pool = getPool();
 
 const { toSnakeCase } = require('../utils/string');
-const Tool = require('./tool.model');
-
+const Lend = require('./lend.model');
+const Mechanic = require('../mechanic/mechanic.model');
+const Tool = require('../tool/tool.model');
 
 /**
- * Insert a new instance of Tool
+ * Insert a new instance of Lend
  * 
  * @param {*} data 
- * @returns {Tool} Tool?
+ * @returns {Lend} Lend?
  */
 const insert = async(
     data = {
-        name,
-        description,
+        toolId,
+        mechanicId,
         quantity,
-        available,
-        cover, 
+        borrowedAt,
     }
 ) => {
 
-    let text = `INSERT INTO ${Tool.tableName} `;
+    let text = `INSERT INTO ${Lend.tableName} `;
 
     const columns = [], values = [], valueIndexes = [];
     /// collect all variables need to build the query
@@ -45,23 +45,20 @@ const insert = async(
     // console.log(values);
     const res = await pool.query({ text, values });
 
-    return res.rows.length > 0 ? Tool.fromDB(res.rows[0]) : null;
+    return res.rows.length > 0 ? Lend.fromDB(res.rows[0]) : null;
 }
 
 /**
- * Updates an instance of Tool
+ * Updates an instance of Lend
  * 
  * @param {*} data 
  * @param {*} where 
- * @returns {Tool} Array of Tool
+ * @returns {Lend} Array of Lend
  */
 const update = async(
     data = {
-        name,
-        description,
         quantity,
-        available,
-        cover, 
+        remittedAt
     }, 
     where = {
         id,
@@ -109,7 +106,7 @@ const update = async(
     });
      
     const text = `
-        UPDATE ${Tool.tableName} 
+        UPDATE ${Lend.tableName} 
         SET ${updateString} 
         WHERE ${whereString}
         RETURNING *;`;
@@ -119,22 +116,19 @@ const update = async(
     const res = await pool.query({ text, values });
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => Tool.fromDB(u)) : [];
+        res.rows.map(u => Lend.fromDB(u)) : [];
 }
 
 
 const find = async(
     where = {
         id,
-        name,
-        description,
-        quantity,
-        available,
+        toolId,
+        mechanicId
     },
     options = {
         limit: undefined,
         skip: undefined,
-        like: undefined, 
     }
 ) => {
 
@@ -157,17 +151,6 @@ const find = async(
         whereString += `s.${prefix}${col} = ${valueIndexes[ind]} `;
     });
 
-    if (options.like) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
-        whereString += `  
-            (s.name ILIKE $${values.length + 1} OR 
-             s.description ILIKE $${values.length + 1})
-        `;
-        values.push(`%${options.like}%`);
-    }
-
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
     }
@@ -184,11 +167,21 @@ const find = async(
     }
      
     const text = `
-        SELECT s.* 
-        FROM ${Tool.tableName} as s 
+        SELECT s.*, (SELECT json_build_object('id', m.id, 'first_name', m.first_name, 'last_name', m.last_name 
+                ) as mechanic  
+                FROM ${Mechanic.tableName} as m 
+                WHERE m.id = s.mechanic_id 
+            ) as mechanic,  
+            (SELECT json_build_object('id', t.id, 'name', t.name, 'description', t.description 
+                ) as tool   
+                FROM ${Tool.tableName} as t 
+                WHERE t.id = s.tool_id  
+            ) as tool   
+        FROM ${Lend.tableName} as s 
         ${whereString} 
-        GROUP BY s.id
-        ${optionString};`;
+        GROUP BY s.id 
+        ORDER BY s.borrowed_at DESC 
+        ${optionString} ;`;
 
     // console.log(text);
     // console.log(values);
@@ -197,7 +190,7 @@ const find = async(
     // console.dir(res.rows, {depth: null});
 
     return res.rows.length > 0 ? 
-        res.rows.map(u => Tool.fromDB(u)) : [];
+        res.rows.map(u => Lend.fromDB(u)) : [];
 
 }
 
@@ -205,13 +198,8 @@ const find = async(
 const findCount = async(
     where = {
         id,
-        name,
-        description,
-        quantity,
-        available,
-    },
-    options = {
-        like: undefined,
+        toolId,
+        mechanicId,
     }
 ) => {
 
@@ -240,7 +228,7 @@ const findCount = async(
 
     const text = `
         SELECT COUNT(*) as total 
-        FROM ${Tool.tableName} 
+        FROM ${Lend.tableName} 
         ${whereString};`;
 
     // console.log(text);

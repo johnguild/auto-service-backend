@@ -1061,3 +1061,212 @@ describe('findMechanicsWithOngoing', () => {
 
 
 });
+
+
+
+describe('findByMechanic', () => {
+
+    it('when finding by mechanic id , will succeed', async() => {
+
+        const preDate = new Date();
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+
+            },
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
+                carPlate: '4444-ABCD',
+                carOdometer: '6700',
+                total: 300,
+            },
+            {
+                customerId: personnelUser.id,
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
+                carPlate: '3212-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const oData of orderData) {
+            const o = await orderDAO.insertOrder(oData);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+
+                // insert mechanic
+                await orderDAO.insertOrderMechanic(
+                    data = {
+                        orderId: o.id,
+                        mechanicId: mechanic.id,
+                    }
+                );
+
+       
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+
+        let mechanics;
+        let err = null;
+        try {
+            mechanics = await orderDAO.findByMechanic(
+                where= {mechanicId: mechanic.id}
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(mechanics, {depth: null});
+
+        expect(mechanics.length).toBe(2);
+
+        // expect(ordersTotal).toBe((orderData[0].total + orderData[1].total).toString());
+
+    });
+
+});
+
+
+
+describe('findCountByMechanic', () => {
+
+    it('when finding count by mechanic id , will succeed', async() => {
+
+        const preDate = new Date();
+        /// create products first
+        const orderData = [
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Camry',
+                carYear: '2000',
+                carPlate: '1234-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+
+            },
+            {
+                customerId: customerUser.id,
+                carMake: 'Toyota',
+                carType: '2020 Wigo',
+                carYear: 'Black',
+                carPlate: '4444-ABCD',
+                carOdometer: '6700',
+                total: 300,
+            },
+            {
+                customerId: personnelUser.id,
+                carMake: 'Honda',
+                carType: '2020 Civi',
+                carYear: 'White',
+                carPlate: '3212-ABCD',
+                carOdometer: '6700',
+                total: 6000,
+            },
+        ]
+        
+        let index = 0;
+        for (const oData of orderData) {
+            const o = await orderDAO.insertOrder(oData);
+
+            if (index == 0 || index == 2) {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id
+                    }
+                )
+
+                // insert mechanic
+                await orderDAO.insertOrderMechanic(
+                    data = {
+                        orderId: o.id,
+                        mechanicId: mechanic.id,
+                    }
+                );
+
+       
+            } else {
+                await orderDAO.insertOrderService(
+                    {
+                        orderId: o.id,
+                        serviceId: services[0].id,
+                        price: services[1].price
+                    }
+                )
+            }
+            index++;
+            // console.log(index);
+        }
+
+
+        let mechanics;
+        let err = null;
+        try {
+            mechanics = await orderDAO.findCountByMechanic(
+                where= {mechanicId: mechanic.id}
+            );
+
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+        // console.dir(mechanics, {depth: null});
+
+
+        expect(parseInt(mechanics)).toBe(2);
+
+        // expect(ordersTotal).toBe((orderData[0].total + orderData[1].total).toString());
+
+    });
+
+});
