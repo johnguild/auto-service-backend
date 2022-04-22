@@ -4,6 +4,8 @@ const validate = () => {
     return [
         body('customerId')
             .isUUID().withMessage('Customer is invalid'), 
+        body('discount')
+            .isFloat({ min: 0 }).withMessage('Discount must be a number'),
         body('carMake')
             .isString().withMessage('Car Make is Invalid')
             .isLength({ min: 1, max: 300 }).withMessage('Car Make must be 1-300 characters only'),
@@ -52,7 +54,7 @@ const validate = () => {
                 .withMessage('Payment type must be a either of AccountsReceivable/Online/Cash/Cheque'),
         body('payment.amount')
             .isFloat({ min: 1 })
-                .withMessage('Payment Amount must be a number'),
+                .withMessage('Payment Amount must be a number with min 1'),
         body('payment.bank')
             .if(body('payment.type').equals('Online')) // if payment.type is Online
             .notEmpty() // then payment.bank is also required

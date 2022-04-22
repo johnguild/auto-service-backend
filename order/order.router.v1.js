@@ -92,7 +92,7 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
-            /// comput the total
+            /// comput the parts and service total
             let partTotal = 0, serviceTotal = 0;
             for (const bodyService of req.body.services) {
                 serviceTotal += parseFloat(bodyService.price);
@@ -115,7 +115,9 @@ const apiVersion = 'v1';
                     carOdometer: req.body.carOdometer,
                     receiveDate: req.body.receiveDate,
                     warrantyEnd: req.body.warrantyEnd,
-                    total: (partTotal + serviceTotal)
+                    subTotal: (partTotal + serviceTotal),
+                    discount: parseFloat(req.body.discount),
+                    total: ((partTotal + serviceTotal) - parseFloat(req.body.discount)),
                 }
             );
 
@@ -230,7 +232,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -339,7 +341,7 @@ const apiVersion = 'v1';
                 }
             }
 
-            /// comput the new total
+            /// comput the parts and service total
             let partTotal = 0, serviceTotal = 0;
             for (const bodyService of req.body.services) {
                 serviceTotal += parseFloat(bodyService.price);
@@ -356,7 +358,9 @@ const apiVersion = 'v1';
             /// update total to db
             await orderDAO.updateOrderTotal({
                 id: order.id,
-                total: (partTotal + serviceTotal)
+                subTotal: (partTotal + serviceTotal),
+                discount: order.discount, 
+                total: ((partTotal + serviceTotal) - parseFloat(order.discount))
             });
 
             // const tmpOrders = await orderDAO.find(where = {

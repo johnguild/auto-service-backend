@@ -15,6 +15,7 @@ const orderProductsMigration0 = require('../../db_migrations/1642766700669_creat
 const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
 const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
 const addCompanyDetailsOnUserMigration0 = require('../../db_migrations/1647518448506_add_company_details_on_users_table');
+const orderMigration1 = require('../../db_migrations/1650623506166_update_orders_add_discount');
 
 const User = require('../../user/user.model');
 const Service = require('../../service/service.model');
@@ -99,6 +100,7 @@ beforeAll( async() => {
     await stockMigration0.up();
     await mechanicMigration0.up();
     await orderMigration0.up();
+    await orderMigration1.up();
     await orderServicesMigration0.up();
     await orderProductsMigration0.up();
     await orderPaymentsMigration0.up();
@@ -249,7 +251,8 @@ it('when with valid data, will succeed', async() => {
         payment: {
             type: 'Cash',
             amount: 750
-        }
+        },
+        discount: 50, 
     }
 
     const orderResponse = await request(app)

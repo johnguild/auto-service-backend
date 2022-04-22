@@ -26,6 +26,8 @@ class Order {
         all_payments = [],
         all_mechanics = [],
         customer,
+        discount,
+        sub_total,
     }) {
         const instance = new this({
             id,  
@@ -45,6 +47,8 @@ class Order {
             payments: all_payments.map((p) => OrderPayment.fromDB(p)),
             mechanics: all_mechanics.map((p) => OrderMechanic.fromDB(p)),
             customer: User.fromDB({ ...customer }),
+            discount,
+            subTotal: sub_total,
         });
         return instance;
     }
@@ -68,6 +72,8 @@ class Order {
         payments = [],
         mechanics = [],
         customer,
+        discount,
+        subTotal,
     }) {
         this.id = id;
         this.customerId = customerId;
@@ -84,6 +90,8 @@ class Order {
         this.payments = payments;
         this.mechanics = mechanics;
         this.customer = customer;
+        this.discount = discount;
+        this.subTotal = subTotal;
         this.services = [];
         this.laborTotal = 0;
         this.partsTotal = 0;

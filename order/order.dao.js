@@ -30,6 +30,8 @@ const insertOrder = async(
         carOdometer,
         receiveDate,
         warrantEnd,
+        discount,
+        subTotal,
     }
 ) => {
 
@@ -295,13 +297,16 @@ const updateOrder = async(
 
 
 const updateOrderTotal = async({
-    id, total
+    id, 
+    subTotal, 
+    discount,
+    total, 
 }) => {
     
 
     const text = `
         UPDATE ${Order.tableName} 
-        SET total = ${total} 
+        SET total = ${total}, sub_total = ${subTotal}, discount = ${discount}  
         WHERE id='${id}' 
         RETURNING *;`;
 
@@ -312,6 +317,7 @@ const updateOrderTotal = async({
     return res.rows.length > 0 ? 
         res.rows.map(u => Order.fromDB(u)) : [];
 }
+
 
 
 const find = async(

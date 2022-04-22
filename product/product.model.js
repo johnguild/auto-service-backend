@@ -52,7 +52,7 @@ class Product {
         this.totalStocks = 0;
 
         stocks.forEach((s) => {
-            this.totalStocks+= s.quantity;
+            this.totalStocks += parseInt(s.quantity);
         });
     }
     

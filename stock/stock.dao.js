@@ -174,6 +174,7 @@ const find = async(
     const text = `
         SELECT * FROM ${Stock.tableName} 
         ${whereString} 
+        ORDER BY created_at DESC 
         ${optionString};`;
 
     // console.log(text);
