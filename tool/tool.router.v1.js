@@ -76,13 +76,22 @@ const apiVersion = 'v1';
 
             const s = tools[0];
 
+            if (parseFloat(req.body.quantity) < parseFloat(s.available)) {
+                return req.api.status(404).errors([
+                    'New quantity must be greater than the current available'
+                ]).send();
+            }
+
+            const oldDifference = parseFloat(s.quantity) - parseFloat(s.available);
+            const newAvailale = parseFloat(req.body.quantity) - oldDifference; 
+
             const updatedTools = await toolDAO.update(
                 data= {
                     name: req.body.name,
                     description: req.body.description,
                     cover: req.body.cover,
                     quantity: req.body.quantity,
-                    available: req.body.quantity,
+                    available: newAvailale,
                 },
                 where= { id: s.id }
             )
@@ -148,7 +157,7 @@ const apiVersion = 'v1';
                 .send(tools);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
