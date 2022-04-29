@@ -149,11 +149,15 @@ describe('update', () => {
         // console.log(manager.id);
 
         const newQuantity = 2;
+        const newRemarks = 'all is Good';
 
         let err = null;
         try {
             const updated = await lendDAO.update(
-                data={quantity: newQuantity},
+                data={
+                    quantity: newQuantity,
+                    remarks: newRemarks, 
+                },
                 where={id: lend.id }
             );
 
@@ -170,6 +174,7 @@ describe('update', () => {
         expect(savedLend.rows.length).toBe(1);
         expect(savedLend.rows[0].id).toBe(lend.id);
         expect(parseInt(savedLend.rows[0].quantity)).toBe(newQuantity);
+        expect(savedLend.rows[0].remarks).toBe(newRemarks);
 
     });
 
@@ -228,7 +233,6 @@ describe('find', () => {
         expect(err).toBeNull();
 
     });
-
 
     it('when finding all with limit, will succeed', async() => {
 

@@ -153,6 +153,7 @@ it('when with valid data will succeed', async() => {
 
     const newData = {
         quantity: 10,
+        remarks: 'all is good',
     }
 
     const response = await request(app)
@@ -175,6 +176,7 @@ it('when with valid data will succeed', async() => {
     const lRes = await pool.query(`SELECT * FROM ${Lend.tableName} WHERE id ='${insertRes.body.data.id}';`);
     expect(lRes.rows.length).toBe(1);
     expect(parseInt(lRes.rows[0].quantity)).toBe(newData.quantity);
+    expect(lRes.rows[0].remarks).toBe(newData.remarks);
 
 });
 

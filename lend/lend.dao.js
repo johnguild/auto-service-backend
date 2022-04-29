@@ -18,6 +18,7 @@ const insert = async(
         mechanicId,
         quantity,
         borrowedAt,
+        remarks, 
     }
 ) => {
 
@@ -58,7 +59,8 @@ const insert = async(
 const update = async(
     data = {
         quantity,
-        remittedAt
+        remittedAt,
+        remarks, 
     }, 
     where = {
         id,

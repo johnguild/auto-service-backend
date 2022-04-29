@@ -12,6 +12,7 @@ const up = async() => {
             quantity NUMERIC, 
             borrowed_at TIMESTAMPTZ, 
             remitted_at TIMESTAMPTZ DEFAULT NULL, 
+            remarks VARCHAR DEFAULT '', 
             PRIMARY KEY(id)
         );`);
 }

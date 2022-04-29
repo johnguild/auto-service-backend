@@ -12,6 +12,7 @@ class Lend {
         quantity,
         borrowed_at,
         remitted_at,
+        remarks, 
         mechanic, 
         tool, 
     }) {
@@ -22,6 +23,7 @@ class Lend {
             quantity,
             borrowedAt: borrowed_at,
             remittedAt: remitted_at, 
+            remarks, 
             mechanic: Mechanic.fromDB({ ...mechanic }),
             tool: Tool.fromDB({ ...tool }),
         });
@@ -36,6 +38,7 @@ class Lend {
         quantity,
         borrowedAt,
         remittedAt, 
+        remarks, 
         mechanic,
         tool, 
     }) {
@@ -45,6 +48,7 @@ class Lend {
         this.quantity = quantity;
         this.borrowedAt = borrowedAt;
         this.remittedAt = remittedAt;
+        this.remarks = remarks;
         this.mechanic = mechanic;
         this.tool = tool;
     }

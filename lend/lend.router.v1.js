@@ -124,7 +124,8 @@ const apiVersion = 'v1';
             // udpate lend
             const updatedLends = await lendDAO.update(
                 data= {
-                    quantity: req.body.quantity
+                    quantity: req.body.quantity,
+                    remarks: req.body.remarks, 
                 },
                 where= { id: lend.id }
             )
@@ -182,6 +183,7 @@ const apiVersion = 'v1';
             const updatedLends = await lendDAO.update(
                 data= {
                     remittedAt: new Date().toISOString(), 
+                    remarks: req.body.remarks, 
                 },
                 where= { id: lend.id }
             )
@@ -201,7 +203,7 @@ const apiVersion = 'v1';
                 .send(updatedLends[0]);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
