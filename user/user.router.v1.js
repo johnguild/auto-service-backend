@@ -5,6 +5,7 @@ const api = require('../middlewares/api');
 const auth = require('../middlewares/auth');
 const loginValidation = require('./validations/login');
 const updateProfileValidation = require('./validations/update_profile');
+const updatePasswordValidation = require('./validations/update_password');
 const validationCheck = require('../middlewares/validationCheck');
 const userDAO = require('./user.dao');
 const User = require('./user.model');
@@ -153,7 +154,7 @@ const apiVersion = 'v1';
                 .send(users[0]);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -162,6 +163,58 @@ const apiVersion = 'v1';
 
     }
 );
+
+
+
+/**
+ * Update Password
+ */
+ router.post(`/${apiVersion}/update-password`, 
+    api('Update Password'),
+    auth(),
+    updatePasswordValidation(),
+    validationCheck(),
+    async (req, res) => {
+        try {
+
+            // check if currentPassword Matched
+            const isMatch = await bcrypt.compare(req.body.currentPassword, req.user.password);
+            if(!isMatch) {
+                return req.api.status(400).errors(['Current password is incorrect']).send();
+            }
+            
+            let encryptedPass;
+            if (req.body.password) {
+                /// encrypt password
+                encryptedPass = await bcrypt.hash(req.body.password, parseInt(process.env.BCRYPT_SALT));
+            }
+
+            const users = await userDAO.update(
+                data= {
+                    password: encryptedPass
+                },
+                where= {
+                    id: req.user.id
+                }
+            );
+        
+            return req.api.status(200)
+                .token(tokenator.generate({
+                    userId: req.user.id,
+                }))
+                .send(users[0]);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
+    }
+);
+
 
 
 /**

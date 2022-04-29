@@ -72,7 +72,8 @@ it('when with valid data will succeed', async() => {
         name: 'Repair Tool',
         description: 'Something here',
         cover: 'base64string',
-        quantity: 100
+        quantity: 100,
+        available: 100, 
     }
     const tool = await toolDAO.insert(toolData);
 
