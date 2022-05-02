@@ -69,7 +69,6 @@ const update = async(
     }, 
     where = {
         id,
-        sku,
     }
 ) => {
 
@@ -171,7 +170,6 @@ const find = async(
         }
         whereString += `  
             (p.name ILIKE $${values.length + 1} OR 
-             p.sku ILIKE $${values.length + 1} OR 
              p.description ILIKE $${values.length + 1} OR 
              p.car_make ILIKE $${values.length + 1} OR 
              p.car_type ILIKE $${values.length + 1} OR 
@@ -337,7 +335,6 @@ const findCount = async(
         }
         whereString += `  
             (name ILIKE $${values.length + 1} OR 
-             sku ILIKE $${values.length + 1} OR 
              description ILIKE $${values.length + 1} OR 
              car_make ILIKE $${values.length + 1} OR 
              car_type ILIKE $${values.length + 1} OR 
