@@ -125,6 +125,8 @@ const apiVersion = 'v1';
 
             let limit = req.query.limit;
             let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
+            let like = req.query.keyword ? req.query.keyword : undefined;
+            let likeSupplier = req.query.supplierKeyword ? req.query.supplierKeyword : undefined;
             
             /// check if acc exists
             const products = await productDAO.find(
@@ -132,14 +134,16 @@ const apiVersion = 'v1';
                 options= {
                     limit: limit, 
                     skip: skip,
-                    like: req.query.keyword ? req.query.keyword : undefined
+                    like: like,
+                    likeSupplier: likeSupplier,
                 }
             );
 
             const total = await productDAO.findCount(
                 where= {},
                 options= {
-                    like: req.query.keyword ? req.query.keyword : undefined
+                    like: like,
+                    likeSupplier: likeSupplier,
                 }
             );
 

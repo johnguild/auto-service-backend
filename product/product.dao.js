@@ -141,6 +141,7 @@ const find = async(
         limit: undefined,
         skip: undefined,
         like: undefined,
+        likeSupplier: undefined, 
     }
 ) => {
 
@@ -164,19 +165,38 @@ const find = async(
     });
 
 
-    if (options.like) {
+    if (options.like !== undefined) {
         if (whereString.trim() != '') {
             whereString += ` AND `;
         }
-        whereString += `  
-            (p.name ILIKE $${values.length + 1} OR 
-             p.description ILIKE $${values.length + 1} OR 
-             p.car_make ILIKE $${values.length + 1} OR 
-             p.car_type ILIKE $${values.length + 1} OR 
-             p.car_year ILIKE $${values.length + 1} OR 
-             p.car_part ILIKE $${values.length + 1})
+        whereString += `(
+            p.name ILIKE $${values.length + 1} OR 
+            p.description ILIKE $${values.length + 1} OR 
+            p.car_make ILIKE $${values.length + 1} OR 
+            p.car_type ILIKE $${values.length + 1} OR 
+            p.car_year ILIKE $${values.length + 1} OR 
+            p.car_part ILIKE $${values.length + 1}
+        )
         `;
+
         values.push(`%${options.like}%`);
+    }
+
+
+    if (options.likeSupplier !== undefined) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        /// add where to by stock supplier
+        whereString += ` EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id
+                    AND s.supplier ILIKE $${values.length + 1} 
+                    AND s.quantity > 0 
+        )
+        `;
+
+        values.push(`%${options.likeSupplier}%`);
     }
 
 
@@ -306,6 +326,7 @@ const findCount = async(
     },
     options = {
         like: undefined,
+        likeSupplier: undefined, 
     }
 ) => {
 
@@ -325,7 +346,7 @@ const findCount = async(
     let whereString = ' ';
     columns.forEach((col, ind) => {
         let prefix = ind > 0 ? 'AND ' : ''; 
-        whereString += `${prefix}${col} = ${valueIndexes[ind]} `;
+        whereString += `${prefix}p.${col} = ${valueIndexes[ind]} `;
     });
 
 
@@ -334,14 +355,30 @@ const findCount = async(
             whereString += ` AND `;
         }
         whereString += `  
-            (name ILIKE $${values.length + 1} OR 
-             description ILIKE $${values.length + 1} OR 
-             car_make ILIKE $${values.length + 1} OR 
-             car_type ILIKE $${values.length + 1} OR 
-             car_year ILIKE $${values.length + 1} OR 
-             car_part ILIKE $${values.length + 1})
+            (p.name ILIKE $${values.length + 1} OR 
+             p.description ILIKE $${values.length + 1} OR 
+             p.car_make ILIKE $${values.length + 1} OR 
+             p.car_type ILIKE $${values.length + 1} OR 
+             p.car_year ILIKE $${values.length + 1} OR 
+             p.car_part ILIKE $${values.length + 1})
         `;
         values.push(`%${options.like}%`);
+    }
+
+    if (options.likeSupplier !== undefined) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        /// add where to by stock supplier
+        whereString += ` EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id 
+                    AND s.supplier ILIKE $${values.length + 1} 
+                    AND s.quantity > 0 
+        )
+        `;
+
+        values.push(`%${options.likeSupplier}%`);
     }
 
     if (whereString.trim() != '') {
@@ -350,7 +387,7 @@ const findCount = async(
 
     const text = `
         SELECT COUNT(*) as total 
-        FROM ${Product.tableName} 
+        FROM ${Product.tableName} as p 
         ${whereString};`;
 
     // console.log(text);

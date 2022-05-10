@@ -5,6 +5,9 @@ const validate = () => {
         query('keyword')
             .default('')
             .isString().withMessage('keyword must be string'),  
+        query('supplierKeyword')
+            .default('')
+            .isString().withMessage('keyword must be string'),  
         query('page')
             .default(1)
             .isInt().withMessage('page must be an integer'),    

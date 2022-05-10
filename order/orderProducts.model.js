@@ -8,6 +8,7 @@ class OrderProduct {
         order_id, 
         service_id,
         product_id,
+        stock_id, 
         price,
         quantity,
         name,
@@ -17,6 +18,7 @@ class OrderProduct {
             orderId: order_id,
             serviceId: service_id,
             productId: product_id,
+            stockId: stock_id, 
             price,
             quantity,
             name,
@@ -30,6 +32,7 @@ class OrderProduct {
         orderId,
         serviceId,
         productId,
+        stockId, 
         price,
         quantity,
         name,
@@ -38,6 +41,7 @@ class OrderProduct {
         this.orderId = orderId;
         this.serviceId = serviceId;
         this.productId = productId;
+        this.stockId = stockId;
         this.price = price;
         this.quantity = quantity;
         this.name = name;

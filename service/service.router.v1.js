@@ -125,6 +125,7 @@ const apiVersion = 'v1';
 
             let limit = req.query.limit;
             let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
+            let like =  req.query.keyword ? req.query.keyword : undefined;
             
             /// check if acc exists
             const services = await serviceDAO.find(
@@ -132,14 +133,14 @@ const apiVersion = 'v1';
                 options= {
                     limit: limit, 
                     skip: skip,
-                    like: req.query.keyword ? req.query.keyword : undefined
+                    like: like,
                 }
             );
 
             const total = await serviceDAO.findCount(
                 where= {},
                 options= {
-                    like: req.query.keyword ? req.query.keyword : undefined
+                    like: like,
                 }
             );
 
@@ -152,7 +153,7 @@ const apiVersion = 'v1';
                 .send(services);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

@@ -29,6 +29,7 @@ const userDAO = require('../../user/user.dao');
 const orderDAO = require('../../order/order.dao');
 const serviceDAO = require('../../service/service.dao');
 const productDAO = require('../../product/product.dao');
+const stockDAO = require('../../stock/stock.dao');
 
 
 
@@ -178,6 +179,19 @@ beforeAll( async() => {
         },
     ]) {
         const productInstance = await productDAO.insert(product);
+
+        const stock = await stockDAO.insert(
+            {
+                productId: productInstance.id,
+                personnelId: personnelUser.id,
+                supplier: 'Test Supplier',
+                quantity: 120,
+                unitPrice: 120.5,
+                sellingPrice: 155.5,
+            }
+        )
+
+        productInstance.stocks = [stock];
         products.push(productInstance);
     }
 });
@@ -264,6 +278,7 @@ it('when with valid data, will succeed', async() => {
                     orderId: o.id,
                     serviceId: services[0].id,
                     productId: products[0].id,
+                    stockId: products[0].stocks[0].id, 
                     price: 300,
                     quantity: 2,
                 }

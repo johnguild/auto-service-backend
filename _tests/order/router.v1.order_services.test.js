@@ -178,11 +178,10 @@ beforeAll( async() => {
         },
     ]) {
         const productInstance = await productDAO.insert(product);
-        products.push(productInstance);
         // console.log(productInstance);
 
         //add stocks
-        await stockDAO.insert(data = {
+        const stock = await stockDAO.insert(data = {
             productId: productInstance.id,
             personnelId: personnelUser.id,
             supplier: 'Test Supplier',
@@ -190,6 +189,9 @@ beforeAll( async() => {
             unitPrice: 400,
             sellingPrice: 450,
         });
+
+        productInstance.stocks = [stock];
+        products.push(productInstance);
     }
 
     // const p1 = await productDAO.find(where={id: products[0].id});
@@ -234,6 +236,7 @@ it('when with valid data, will succeed', async() => {
             price: services[0].price,
             addedProducts: [{
                 id: products[0].id,
+                stockId: products[0].stocks[0].id, 
                 price: 250,
                 quantity: 1,
             }]
@@ -242,6 +245,7 @@ it('when with valid data, will succeed', async() => {
             price: services[0].price,
             addedProducts: [{
                 id: products[0].id,
+                stockId: products[0].stocks[0].id, 
                 price: 250,
                 quantity: 2,
             }]
@@ -254,6 +258,7 @@ it('when with valid data, will succeed', async() => {
         },
         discount: 50, 
     }
+    // console.dir(orderData, { depth: null });
 
     const orderResponse = await request(app)
         .post(`/${v}/orders`)
@@ -267,6 +272,7 @@ it('when with valid data, will succeed', async() => {
         price: services[1].price,
         addedProducts: [{
             id: products[0].id,
+            stockId: products[0].stocks[0].id, 
             price: 300,
             quantity: 2,
         }]
@@ -275,6 +281,7 @@ it('when with valid data, will succeed', async() => {
         price: services[2].price,
         addedProducts: [{
             id: products[0].id,
+            stockId: products[0].stocks[0].id, 
             price: 300,
             quantity: 3,
         }]

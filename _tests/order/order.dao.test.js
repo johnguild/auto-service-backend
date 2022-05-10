@@ -7,6 +7,7 @@ const pool = getPool();
 const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
 const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
+const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
 const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
 const orderMigration0 = require('../../db_migrations/1642765556944_create_orders_table');
 const orderServicesMigration0 = require('../../db_migrations/1642766434532_create_order_services_table');
@@ -31,6 +32,7 @@ const orderDAO = require('../../order/order.dao');
 const serviceDAO = require('../../service/service.dao');
 const productDAO = require('../../product/product.dao');
 const mechanicDAO = require('../../mechanic/mechanic.dao');
+const stockDAO = require('../../stock/stock.dao');
 
 const managerData = {
     email: 'manager.autoservice@gmail.com',
@@ -86,6 +88,7 @@ beforeAll( async() => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await mechanicMigration0.down();
     await orderMigration0.down();
     await orderServicesMigration0.down();
@@ -97,6 +100,7 @@ beforeAll( async() => {
     await addCompanyDetailsOnUserMigration0.up();
     await serviceMigration0.up();
     await productMigration0.up();
+    await stockMigration0.up();
     await mechanicMigration0.up();
     await orderMigration0.up();
     await orderMigration1.up();
@@ -176,6 +180,7 @@ afterAll( async() => {
     await userMigration0.down();
     await serviceMigration0.down();
     await productMigration0.down();
+    await stockMigration0.down();
     await mechanicMigration0.down();
     await orderMigration0.down();
     await orderServicesMigration0.down();
@@ -291,6 +296,17 @@ describe('insertOrderProducts', () => {
             name: 'Product 1',
             description: 'Description 1',
         });
+
+        const stock = await stockDAO.insert({
+            productId: product.id,
+            personnelId: personnelUser.id,
+            supplier: 'Test Supplier',
+            quantity: 10,
+            unitPrice: 120,
+            sellingPrice: 150,
+        });
+
+
         const productPrice = 333;
         const productQuantity = 2;
 
@@ -303,6 +319,7 @@ describe('insertOrderProducts', () => {
                     orderId: order.id, 
                     serviceId: service.id,
                     productId: product.id, 
+                    stockId: stock.id, 
                     price: productPrice, 
                     quantity: productQuantity,
                 }
@@ -316,6 +333,7 @@ describe('insertOrderProducts', () => {
         expect(orderProduct.orderId).toBe(order.id);
         expect(orderProduct.serviceId).toBe(service.id);
         expect(orderProduct.productId).toBe(product.id);
+        expect(orderProduct.stockId).toBe(stock.id);
         expect(orderProduct.price).toBe(productPrice.toString());
         expect(orderProduct.quantity).toBe(productQuantity.toString());
     });
@@ -568,6 +586,20 @@ describe('find', () => {
 
     it('when finding by customerId, will succeed', async() => {
 
+        const product = await productDAO.insert({
+            name: 'Product 1',
+            description: 'Description 1',
+        });
+
+        const stock = await stockDAO.insert({
+            productId: product.id,
+            personnelId: personnelUser.id,
+            supplier: 'Test Supplier',
+            quantity: 10,
+            unitPrice: 120,
+            sellingPrice: 150,
+        });
+
 
         /// create products first
         const orderData = [
@@ -617,6 +649,17 @@ describe('find', () => {
                     {
                         orderId: o.id,
                         serviceId: services[0].id
+                    }
+                )
+
+                await orderDAO.insertOrderProduct(
+                    {
+                        orderId: o.id, 
+                        serviceId: services[0].id,
+                        productId: product.id, 
+                        stockId: stock.id, 
+                        price: 120, 
+                        quantity: 2,
                     }
                 )
             } else {

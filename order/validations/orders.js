@@ -37,10 +37,15 @@ const validate = () => {
             .isArray().withMessage('Products must be an array of object'), 
         body('services.*.addedProducts.*.id')
             .isUUID().withMessage('Product Id are invalid'), 
-        body('services.*.addedProducts.*.price')
-            .isFloat({ min: 1 }).withMessage('Product price are invalid'), 
-        body('services.*.addedProducts.*.quantity')
-            .isInt({ min: 1 }).withMessage('Product quantity are invalid'), 
+        body('services.*.addedProducts.*.addedStocks')
+            .default([])
+            .isArray().withMessage('Product addedStocks must be an array of object'), 
+        body('services.*.addedProducts.*.addedStocks.*.id')
+            .isUUID().withMessage('Added stock Id are invalid'), 
+        body('services.*.addedProducts.*.addedStocks.*.price')
+            .isFloat({ min: 0 }).withMessage('Added stock price are invalid'), 
+        body('services.*.addedProducts.*.addedStocks.*.quantity')
+            .isInt({ min: 0 }).withMessage('Added stock quantity are invalid'), 
         body('mechanics')
             .default([])
             .isArray().withMessage('Mechanics must be an array of object'), 

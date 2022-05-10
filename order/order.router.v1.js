@@ -50,60 +50,74 @@ const apiVersion = 'v1';
                 ]).send();
             }
 
-            /// check if stocks are available
-            const tmpServiceProductIds = [];
-            const tmpServiceProductQuantities = [];
-            if (req.body.services.length > 0) {
-                for (const bodyService of req.body.services) {
-                    if (bodyService.addedProducts.length > 0) {
-                        for (const bodyProduct of bodyService.addedProducts) {
-                            // console.log(bodyProduct);
-                            // console.log(tmpServiceProductIds.includes(bodyProduct.id));
-                            if (tmpServiceProductIds.includes(bodyProduct.id)) {
-                                const indexOf = tmpServiceProductIds.indexOf(bodyProduct.id);
-                                tmpServiceProductQuantities[indexOf] += parseInt(bodyProduct.quantity);
-                            } else {
-                                // console.log('add');
-                                tmpServiceProductIds.push(bodyProduct.id);
-                                tmpServiceProductQuantities.push(parseInt(bodyProduct.quantity));
+            // console.dir(req.body, {depth: null});
+
+
+
+            /// collect all productId + stockId with quantity
+            const tempProductStocks = [
+            // {
+            //     productId,
+            //     stockId,
+            //     totalQuantity,
+            // }
+            ];
+            for (const bodyService of req.body.services) {
+                for (const bodyProduct of bodyService.addedProducts) {
+                    for (const bodyStock of bodyProduct.addedStocks) {
+                        if (parseInt(bodyStock.quantity) == 0) {
+                            continue;
+                        }
+
+                        /// if object already exists, increment totalQuantity
+                        if (tempProductStocks.some( ps => 
+                            ps['productId'] === bodyProduct.id && 
+                            ps['stockId'] === bodyStock.id )
+                        ) {
+                            for (let index = 0; index < tempProductStocks.length; index++) {
+                                const ele = tempProductStocks[index];
+                                if (tempProductStocks[index].productId === bodyProduct.id && 
+                                    tempProductStocks[index].stockId === bodyStock.id) {
+                                        tempProductStocks[index].totalQuantity += parseInt(bodyStock.quantity);
+                                }
                             }
-                            // total += parseFloat(bodyProduct.price) * parseFloat(bodyProduct.quantity);
+                        } 
+                        /// if not push a new object to array
+                        else {
+                            tempProductStocks.push({
+                                productId: bodyProduct.id,
+                                stockId: bodyStock.id,
+                                totalQuantity: parseInt(bodyStock.quantity),
+                            });
                         }
                     }
                 }
             }
+            // console.dir(tempProductStocks, {depth: null});
 
-            let hasInsufficientStock = false;
-            for (const productId of tmpServiceProductIds) {
-                const indexOf = tmpServiceProductIds.indexOf(productId);
-                const totalQuantity = tmpServiceProductQuantities[indexOf];
-
-                let stockTotal = await stockDAO.findTotalQuantity(where = {productId: productId});
-
-                // console.log(productId, totalQuantity, stockTotal);
-                if (totalQuantity > stockTotal) {
-                    hasInsufficientStock = true;
+            /// check if stocks available sufficeint
+            for (const ps of tempProductStocks) {
+                const stocks = await stockDAO.find(
+                    where= {id: ps.stockId}
+                );
+                if (stocks.length == 0 || parseInt(stocks[0].quantity) < ps.totalQuantity) {
+                    return req.api.status(400).errors([
+                        'Inventory quantity exceeds stocks available!'
+                    ]).send();
                 }
             }
 
-            if (hasInsufficientStock) {
-                return req.api.status(400).errors([
-                    'Inventory quantity exceeds stocks available!'
-                ]).send();
-            }
-
-            /// comput the parts and service total
+            /// compute the parts and service total
             let partTotal = 0, serviceTotal = 0;
             for (const bodyService of req.body.services) {
                 serviceTotal += parseFloat(bodyService.price);
-                if (bodyService.addedProducts.length > 0) {
-                    for (const bodyProduct of bodyService.addedProducts) {
-                        partTotal += parseInt(bodyProduct.quantity) * parseFloat(bodyProduct.price);
+                for (const bodyProduct of bodyService.addedProducts) {
+                    for (const bodyStocks of bodyProduct.addedStocks) {
+                        partTotal += parseInt(bodyStocks.quantity) * parseFloat(bodyStocks.price);
                     }
                 }
             }
-
-            // console.log(tmpServiceProductIds, tmpServiceProductQuantities);
+            // console.dir({partTotal, serviceTotal}, {depth: null});
 
             const order = await orderDAO.insertOrder(
                 data = {
@@ -121,10 +135,11 @@ const apiVersion = 'v1';
                 }
             );
 
-            
+            /// add related order tables
             if (req.body.services.length > 0) {
-                let index = 0;
+
                 for (const bodyService of req.body.services) {
+                    /// insert orderServices
                     await orderDAO.insertOrderService(
                         data = {
                             orderId: order.id,
@@ -133,25 +148,29 @@ const apiVersion = 'v1';
                         }
                     );
     
-                    if (req.body.services[index].addedProducts.length > 0) {
-
-                        for (const bodyProduct of req.body.services[index].addedProducts) {
+                    /// insert orderProducts
+                    for (const bodyProduct of bodyService.addedProducts) {
+                        for (const bodyStock of bodyProduct.addedStocks) {
+                            if (parseInt(bodyStock.quantity) == 0) {
+                                continue;
+                            }
                             await orderDAO.insertOrderProduct(
                                 data = {
                                     orderId: order.id,
                                     serviceId: bodyService.id,
                                     productId: bodyProduct.id,
-                                    price: bodyProduct.price,
-                                    quantity: bodyProduct.quantity,
+                                    stockId: bodyStock.id, 
+                                    price: bodyStock.price,
+                                    quantity: bodyStock.quantity,
                                 }
                             );
                         }
                     }
     
-                    index++;
                 }
             }
 
+            /// insert orderPayments
             if (req.body.payment) {
                 await orderDAO.insertOrderPayment(
                     data = {
@@ -178,6 +197,7 @@ const apiVersion = 'v1';
                 )
             }
 
+            /// insert orderMechanics
             if (req.body.mechanics.length > 0) {
                 for (const bodyMechanic of req.body.mechanics) {
                     await orderDAO.insertOrderMechanic(
@@ -190,42 +210,19 @@ const apiVersion = 'v1';
             }
 
             // console.log(`deduct stock`);
-            for (const productId of tmpServiceProductIds) {
-                const indexOf = tmpServiceProductIds.indexOf(productId);
-                let totalQuantity = tmpServiceProductQuantities[indexOf];
-
-                const stocks = await stockDAO.find(where = {productId: productId});
-                for (const stock of stocks) {
-                    if (totalQuantity == 0) {
-                        continue;
+            /// update product stocks 
+            for (const ps of tempProductStocks) {
+                const stocks = await stockDAO.find(
+                    where= {id: ps.stockId}
+                );
+                await stockDAO.update(
+                    data = {
+                        quantity: (stocks[0].quantity - ps.totalQuantity),
+                    },
+                    where = {
+                        id: stocks[0].id,
                     }
-                    const stockQty = parseInt(stock.quantity);
-                    // console.log(stockQty, totalQuantity, stock.id);
-                    if (totalQuantity <= stockQty ) {
-                        // console.log(`less than available stocks`);
-                        await stockDAO.update(
-                            data = {
-                                quantity: (stockQty - totalQuantity),
-                            },
-                            where = {
-                                id: stock.id,
-                            }
-                        );
-                        totalQuantity = 0;
-                    } else {
-                        // console.log(`greater than available stocks`);
-                        await stockDAO.update(
-                            data = {
-                                quantity: 0,
-                            },
-                            where = {
-                                id: stock.id,
-                            }
-                        );
-                        totalQuantity -= stockQty;
-                    }
-                 
-                }
+                )
             }
 
             return req.api.status(200)
@@ -330,6 +327,7 @@ const apiVersion = 'v1';
                                     orderId: order.id,
                                     serviceId: bodyService.id,
                                     productId: bodyProduct.id,
+                                    stockId: bodyProduct.stockId,
                                     price: bodyProduct.price,
                                     quantity: bodyProduct.quantity,
                                 }
@@ -363,11 +361,6 @@ const apiVersion = 'v1';
                 total: ((partTotal + serviceTotal) - parseFloat(order.discount))
             });
 
-            // const tmpOrders = await orderDAO.find(where = {
-            //     id: req.params.id,
-            // });
-
-            // console.dir(tmpOrders, {depth: null});
 
             return req.api.status(200).send();
 
@@ -434,7 +427,7 @@ const apiVersion = 'v1';
             return req.api.status(200).send();
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

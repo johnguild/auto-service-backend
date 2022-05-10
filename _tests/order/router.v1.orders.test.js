@@ -220,9 +220,8 @@ it('when with valid data, will succeed', async() => {
         },
     ]) {
         const productInstance = await productDAO.insert(product);
-        products.push(productInstance);
 
-        await stockDAO.insert({
+        const stock1 = await stockDAO.insert({
             productId: productInstance.id,
             personnelId: personnelUser.id,
             supplier: 'Texas',
@@ -231,7 +230,7 @@ it('when with valid data, will succeed', async() => {
             sellingPrice: 131,
         });
 
-        await stockDAO.insert({
+        const stock2 = await stockDAO.insert({
             productId: productInstance.id,
             personnelId: personnelUser.id,
             supplier: 'Texas',
@@ -239,6 +238,8 @@ it('when with valid data, will succeed', async() => {
             unitPrice: 89,
             sellingPrice: 132,
         });
+        productInstance.stocks = [stock1, stock2];
+        products.push(productInstance);
     }
 
     /// create services first
@@ -254,18 +255,35 @@ it('when with valid data, will succeed', async() => {
         services: [{
             id: services[0].id,
             price: services[0].price,
-            products: [{
+            addedProducts: [{
                 id: products[0].id,
-                price: 300,
-                quantity: 1,
+                addedStocks: [{
+                    id: products[0].stocks[0].id,
+                    price: products[0].stocks[0].sellingPrice,
+                    quantity: 2,
+                },{
+                    id: products[0].stocks[1].id,
+                    price: products[0].stocks[1].sellingPrice,
+                    quantity: 1,
+                }]
             }]
         },{
             id: services[0].id,
             price: services[0].price,
-            products: [{
+            addedProducts: [{
                 id: products[0].id,
-                price: 400,
-                quantity: 2,
+                addedStocks: [{
+                    id: products[0].stocks[0].id,
+                    price: products[0].stocks[0].sellingPrice,
+                    quantity: 1,
+                    // quantity: products[0].stocks[0].quantity,
+                }]
+            }]
+        },{
+            id: services[1].id,
+            price: services[1].price,
+            addedProducts: [{
+                id: products[0].id
             }]
         }],
         payment: {
@@ -351,8 +369,12 @@ it('when with there are no products in services, will succeed', async() => {
             price: services[0].price,
             products: [{
                 id: products[0].id,
-                price: products[1].price,
-                quantity: 1,
+                addedStocks: [{
+                    id: products[0].stocks[0].id,
+                    price: products[0].stocks[0].sellingPrice,
+                    quantity: 1,
+                    // quantity: products[0].stocks[0].quantity,
+                }]
             }]
         }],
         receiveDate: new Date().toISOString(),

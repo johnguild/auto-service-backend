@@ -9,6 +9,7 @@ const up = async() => {
             order_id uuid NOT NULL,
             service_id uuid NOT NULL,
             product_id uuid NOT NULL,
+            stock_id uuid NOT NULL, 
             price NUMERIC DEFAULT 0.0,
             quantity NUMERIC DEFAULT 1, 
             PRIMARY KEY(id)

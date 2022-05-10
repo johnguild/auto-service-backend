@@ -1,7 +1,14 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
 
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+
+
+const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
+const userDAO = require('../../user/user.dao');
+const User = require('../../user/user.model');
 
 const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
 const productMigration1 = require('../../db_migrations/1647514335737_add_car_details_on_products_table');
@@ -12,21 +19,44 @@ const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks
 const Stock = require('../../stock/stock.model');
 const stockDAO = require('../../stock/stock.dao');
 
+
+const personnelData = {
+    email: 'johnrobin.autoproduct@gmail.com',
+    mobile: '639359372676',
+    password: 'P@ssW0rd',
+    firstName: 'John Robin',
+    lastName: 'Perez',
+    birthDay: new Date(Date.now()).toISOString(),
+    gender: 'Male',
+    role: User.ROLE_PERSONNEL,
+}
+
 const product1Data = {
     name: 'Product 1',
     description: 'Description 1',
 }
 
+let personnel, product;
 
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
+    await userMigration0.down();
     await productMigration0.down();
     await stockMigration0.down();
     // migrate tables
+    await userMigration0.up();
     await productMigration0.up();
     await productMigration1.up();
     await stockMigration0.up();
+
+
+    const personnelEncryptedPass = await bcrypt.hash(personnelData.password, parseInt(process.env.BCRYPT_SALT));
+    personnel = await userDAO.insert(data = {
+        ...personnelData,
+        password: personnelEncryptedPass,
+    });     
+
 });
 
 beforeEach( async() => {
@@ -35,6 +65,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
+    await userMigration0.down();
     await productMigration0.down();
     await stockMigration0.down();
     await closePool();
@@ -149,6 +180,94 @@ describe('find', () => {
             );
 
             expect(search1.length).toBe(1);
+
+            // console.log(searchRes[0]);
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+    });
+
+
+    it('when finding by supplier on records, will succeed', async() => {
+        /// create products first
+        const productData = [
+            {
+                name: 'Product 1',
+                description: 'Description 1',
+            },
+            {
+                name: 'Product 2',
+                description: 'Description 2',
+            },
+        ];
+
+        const stocksData = [
+            {
+                supplier: 'Supplier s1',
+                quantity: 12,
+                unitPrice: 80,
+                sellingPrice: 100,
+            },
+            {
+                supplier: 'Supplier s2',
+                quantity: 12,
+                unitPrice: 80,
+                sellingPrice: 100,
+            }
+        ]
+
+        for (const pData of productData) {
+            const p = await productDAO.insert(pData);
+            // console.log(p);
+            // add new stock
+            const s1 = await stockDAO.insert({
+                personnelId: personnel.id,
+                productId: p.id,
+                ...stocksData[0]
+            });
+            // console.log(s1);
+
+            if (pData.name != productData[1].name) {
+                const s2= await stockDAO.insert({
+                    personnelId: personnel.id,
+                    productId: p.id,
+                    ...stocksData[1]
+                });
+                // console.log(s2);
+            }
+        }
+
+
+
+        let err = null;
+        try {
+            const search1 = await productDAO.find( 
+                where= {},
+                options= {
+                    likeSupplier: 's2'
+                } 
+            );
+            expect(search1.length).toBe(1);
+
+            const search2 = await productDAO.find( 
+                where= {},
+                options= {
+                    likeSupplier: 'sup'
+                } 
+            );
+            expect(search2.length).toBe(2);
+
+            const search3 = await productDAO.find( 
+                where= {},
+                options= {
+                    like: 'prod',
+                    likeSupplier: 'sup'
+                } 
+            );
+            expect(search3.length).toBe(2);
+
 
             // console.log(searchRes[0]);
         } catch (error) {
@@ -281,7 +400,6 @@ describe('find', () => {
 
     });
 });
-
 
 describe('findLike', () => {
 

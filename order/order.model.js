@@ -120,6 +120,7 @@ class Order {
                 if (product.serviceId == service.serviceId) {
                     formattedService.products.push({
                         productId: product.productId,
+                        stockId: product.stockId, 
                         price: product.price,
                         quantity: product.quantity,
                         name: product.name,
