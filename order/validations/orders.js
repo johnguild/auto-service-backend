@@ -31,7 +31,7 @@ const validate = () => {
         body('services.*.id')
             .isUUID().withMessage('Services Id are invalid'), 
         body('services.*.price')
-            .isFloat({ min: 1 }).withMessage('Services price are invalid'), 
+            .isFloat({ min: 0 }).withMessage('Services price are invalid'), 
         body('services.*.addedProducts')
             .default([])
             .isArray().withMessage('Products must be an array of object'), 

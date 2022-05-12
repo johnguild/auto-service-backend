@@ -13,7 +13,7 @@ const validate = () => {
             .isBase64().withMessage('Cover must be a base64 string'),
         body('price')
             .default(0.0)
-            .isFloat({ min: 1 }).withMessage('Price must be a number'),
+            .isFloat({ min: 0 }).withMessage('Price must be a number'),
         body('discountedPrice')
             .optional()
             .isFloat({ min: 1 }).withMessage('Discounted Price must be a number'),
