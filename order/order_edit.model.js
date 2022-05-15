@@ -4,9 +4,7 @@ const OrderProduct = require("./orderProducts.model");
 const OrderService = require("./orderServices.model");
 const OrderMechanic = require("./orderMechanics.model");
 
-class Order {
-
-    static tableName = 'orders';
+class OrderEdit {
 
     static fromDB({
         id, 
@@ -43,9 +41,32 @@ class Order {
             warrantyEnd: warranty_end,
             createdAt: created_at,
             allServices: all_services.map((s) => OrderService.fromDB(s)),
-            allProducts: all_products.map((p) => OrderProduct.fromDB(p)),
+            allProducts: all_products.map((p) => {return {
+                serviceId: p.service_id, 
+                productId: p.product_id,
+                name: p.name,
+                description: p.description, 
+                carType: p.car_type,
+                carMake: p.car_make,
+                carYear: p.car_year,
+                carPart: p.car_part, 
+                stockId: p.stock_id,
+                quantity: p.quantity,
+                price: p.price,
+                supplier: p.supplier, 
+                available: p.available,
+                unitPrice: p.unit_price,
+                sellingPrice: p.selling_price,
+            }}),
             payments: all_payments.map((p) => OrderPayment.fromDB(p)),
-            mechanics: all_mechanics.map((p) => OrderMechanic.fromDB(p)),
+            mechanics: all_mechanics.map((m) => {
+                return {
+                    id: m.mechanic_id,
+                    firstName: m.first_name,
+                    lastName: m.last_name,
+                    mobile: m.mobile,
+                }
+            }),
             customer: User.fromDB({ ...customer }),
             discount,
             subTotal: sub_total,
@@ -88,11 +109,11 @@ class Order {
         this.warrantyEnd = warrantyEnd;
         this.createdAt = createdAt;
         this.payments = payments;
-        this.mechanics = mechanics;
+        this.orderMechanics = mechanics;
         this.customer = customer;
         this.discount = discount;
         this.subTotal = subTotal;
-        this.services = [];
+        this.orderServices = [];
         this.laborTotal = 0;
         this.partsTotal = 0;
         this.paymentsTotal = 0;
@@ -102,16 +123,17 @@ class Order {
         this.chequeTotal = 0;
 
 
-        // console.dir(allProducts, {depth: null});
+        // console.dir({allProducts, allServices}, {depth: null});
         // let newTotal = 0;
         for (const service of allServices) {
             // console.log(service);
             const formattedService = {
-                serviceId: service.serviceId,
+                id: service.serviceId,
                 price: service.price,
                 title: service.title,
                 description: service.description, 
                 products: [],
+                completeProducts: [],
             }
 
             this.laborTotal += parseFloat(service.price);
@@ -121,27 +143,64 @@ class Order {
                 if (product.serviceId == service.serviceId) {
                     formattedService.products.push({
                         productId: product.productId,
+                        name: product.name,
+                        description: product.description,
+                        carType: product.carType,
+                        carMake: product.carMake,
+                        carYear: product.carYear,
+                        carPart: product.carPart,
                         stockId: product.stockId, 
                         price: product.price,
                         quantity: product.quantity,
-                        name: product.name,
+                        supplier: product.supplier, 
+                        available: product.available,
+                        unitPrice: product.unitPrice,
+                        sellingPrice: product.sellingPrice, 
                     });
                     this.partsTotal += (parseInt(product.quantity) * parseFloat(product.price));
-                    // newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
                 }
             }
-            this.services.push(formattedService);
-
-
-            // let newTotalPayment = parseFloat(downPayment);
-            // for (const pm of payments) {
-            //     newTotalPayment += parseFloat(pm.amount);
-            // }
-
-            // // custom values
-            // this.total = newTotal;
-            // this.totalPayment = newTotalPayment;
+            this.orderServices.push(formattedService);
         }
+        /// rebuild products by combinings them
+        this.orderServices.forEach((service, serviceIndex) => {
+            const addedProducts = [];
+            /// add products first
+            service.products.forEach((product, productIndex) => {
+                if (addedProducts.filter(
+                        (v, i, arr) => v.id === product.productId).length == 0) {
+                    addedProducts.push({
+                        id: product.productId,
+                        name: product.name,
+                        description: product.description,
+                        carType: product.carType,
+                        carMake: product.carMake,
+                        carYear: product.carYear,
+                        carPart: product.carPart,
+                        addedStocks: service.products.map((p, i) => {
+                            if (p.productId === product.productId) {
+                                return {
+                                    id: p.stockId,
+                                    price: p.price,
+                                    quantity: p.quantity,
+                                    supplier: p.supplier, 
+                                    available: p.available,
+                                    unitPrice: p.unitPrice,
+                                    sellingPrice: p.sellingPrice,
+                                }
+                            }
+                        }).filter((element) => {
+                            return element !== undefined;
+                        }),
+                    })
+                }
+            });
+
+
+            this.orderServices[serviceIndex].addedProducts = addedProducts;
+            this.orderServices[serviceIndex].products = [];
+
+        });
         
         for (const payment of payments) {
             const pAmount = parseFloat(payment.amount);
@@ -167,4 +226,4 @@ class Order {
     
 }   
 
-module.exports = Order
+module.exports = OrderEdit

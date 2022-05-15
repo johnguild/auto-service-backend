@@ -7,7 +7,8 @@ const ordersValidation = require('./validations/orders');
 const paymentsValidation = require('./validations/payments');
 const servicesValidation = require('./validations/services');
 const completeValidation = require('./validations/complete');
-// const ordersIdValidation = require('./validations/orders_id');
+const getEditValidation = require('./validations/get_edit');
+const postUpdateValidation = require('./validations/post_update');
 const getOrdersValidation = require('./validations/get_orders');
 const getOrdersByMechanicValidation = require('./validations/get_orders_by_mechanic');
 const getOrdersTotalValidation = require('./validations/get_orders_total');
@@ -217,7 +218,7 @@ const apiVersion = 'v1';
                 );
                 await stockDAO.update(
                     data = {
-                        quantity: (stocks[0].quantity - ps.totalQuantity),
+                        quantity: (parseInt(stocks[0].quantity) - ps.totalQuantity),
                     },
                     where = {
                         id: stocks[0].id,
@@ -229,7 +230,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -495,77 +496,256 @@ const apiVersion = 'v1';
 );
 
 
-// /**
-//  * Update a Order
-//  */
-//  router.post(`/${apiVersion}/orders/:id`, 
-//     api('Update a Order'),
-//     auth([User.ROLE_PERSONNEL]),
-//     ordersIdValidation(),
-//     validationCheck(),
-//     async (req, res) => {
-//         // console.log(req.params.id);
-//         try {
-
-//             /// check if order exists
-//             const orders = await orderDAO.find(where = {
-//                 id: req.params.id,
-//             });
-
-//             if (orders.length == 0) {
-//                 return req.api.status(404).errors([
-//                     'Order Not Found!'
-//                 ]).send();
-//             }
-
-//             const s = orders[0];
-
-//             /// check if sku is available 
-//             const dupSKU = await orderDAO.find(where = {
-//                 sku: req.body.sku,
-//             });
-
-//             if (dupSKU.length > 0) {
-//                 let alreadyTaken = false;
-//                 dupSKU.forEach(prod => {
-//                     if (prod.id != s.id && prod.sku == req.body.sku) {
-//                         alreadyTaken = true;
-//                     }
-//                 });
-//                 if (alreadyTaken) {
-//                     return req.api.status(400).errors([
-//                         'SKU already taken!'
-//                     ]).send();
-//                 }
-//             }
-
-//             const updatedOrders = await orderDAO.update(
-//                 data= {
-//                     name: req.body.name,
-//                     sku: req.body.sku,
-//                     description: req.body.description,
-//                     stock: req.body.stock,
-//                     price: req.body.price,
-//                 },
-//                 where= { id: s.id }
-//             )
-
-//             // console.log(updatedOrders);
-
-//             return req.api.status(200)
-//                 .send(updatedOrders[0]);
-
-//         } catch (error) {
-//             // console.log(error);
-//             return req.api.status(422).errors([
-//                 'Failed processing request. Pleast try again!'
-//             ]).send();
-//         }
 
 
-//     }
-// );
+/**
+ * Get order for editing
+ */
+ router.get(`/${apiVersion}/orders/:id/edit`, 
+    api('Get Order for editing'),
+    auth([User.ROLE_MANAGER]),
+    getEditValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
 
+            /// check if order exists
+            const order = await orderDAO.findOneWithStock(where = {
+                id: req.params.id,
+            });
+
+            return req.api.status(200).send(order);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
+    }
+);
+
+
+/**
+ * Update order
+ */
+ router.post(`/${apiVersion}/orders/:id/update`, 
+    api('Get Order for editing'),
+    auth([User.ROLE_MANAGER]),
+    postUpdateValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            /// check if order exists
+            const orders = await orderDAO.find(where = {
+                id: req.params.id,
+                completed: false, 
+            });
+
+            if (orders.length == 0) {
+                return req.api.status(404).errors([
+                    'Order Not Found!'
+                ]).send();
+            }
+
+            const order = orders[0];
+
+            const tempProductStocks = [
+            // {
+            //     productId,
+            //     stockId,
+            //     totalQuantity,
+            // }
+            ];
+            for (const bodyService of req.body.services) {
+                for (const bodyProduct of bodyService.addedProducts) {
+                    for (const bodyStock of bodyProduct.addedStocks) {
+                        if (parseInt(bodyStock.quantity) == 0) {
+                            continue;
+                        }
+
+                        /// if object already exists, increment totalQuantity
+                        if (tempProductStocks.some( ps => 
+                            ps['productId'] === bodyProduct.id && 
+                            ps['stockId'] === bodyStock.id )
+                        ) {
+                            for (let index = 0; index < tempProductStocks.length; index++) {
+                                const ele = tempProductStocks[index];
+                                if (tempProductStocks[index].productId === bodyProduct.id && 
+                                    tempProductStocks[index].stockId === bodyStock.id) {
+                                        tempProductStocks[index].totalQuantity += parseInt(bodyStock.quantity);
+                                }
+                            }
+                        } 
+                        /// if not push a new object to array
+                        else {
+                            tempProductStocks.push({
+                                productId: bodyProduct.id,
+                                stockId: bodyStock.id,
+                                totalQuantity: parseInt(bodyStock.quantity),
+                            });
+                        }
+                    }
+                }
+            }
+            // console.dir(tempProductStocks, {depth: null});
+
+            /// check if stocks available sufficient
+            for (const ps of tempProductStocks) {
+                const stocks = await stockDAO.find(
+                    where= {id: ps.stockId}
+                );
+                /// combine the quantity from the original order
+                let originalOrderStock = parseInt(stocks[0].quantity);
+                order.services.forEach(service => {
+                    service.products.forEach(product => {
+                        if (product.stockId == ps.stockId) {
+                            originalOrderStock += parseInt(product.quantity);
+                        }
+                    })
+                });
+                // console.dir({
+                //     available: stocks[0].quantity,
+                //     originalOrderStock,
+                //     totalQuantity: ps.totalQuantity,
+                // }, {depth: null});
+                if (stocks.length == 0 || originalOrderStock < ps.totalQuantity) {
+                    return req.api.status(400).errors([
+                        'Inventory quantity exceeds stocks available!'
+                    ]).send();
+                }
+            }
+
+            /// compute the parts and service total
+            let partTotal = 0, serviceTotal = 0;
+            for (const bodyService of req.body.services) {
+                serviceTotal += parseFloat(bodyService.price);
+                for (const bodyProduct of bodyService.addedProducts) {
+                    for (const bodyStocks of bodyProduct.addedStocks) {
+                        partTotal += parseInt(bodyStocks.quantity) * parseFloat(bodyStocks.price);
+                    }
+                }
+            }
+
+            // console.dir(order, {depth: null});
+            /// return all stock quantity
+            for (const os of order.services) {
+                for (const ps of os.products) {
+                    const stocks = await stockDAO.find(
+                        where= {id: ps.stockId}
+                    );
+                    await stockDAO.update(
+                        data= {
+                            quantity: (parseInt(stocks[0].quantity)+parseInt(ps.quantity))
+                        },
+                        where= {
+                            id: ps.stockId
+                        }
+                    )
+                }
+            }
+
+            /// update the order details
+            const updatedOrders = await orderDAO.updateOrder(
+                data= {
+                    carMake: req.body.carMake,
+                    carType: req.body.carType,
+                    carYear: req.body.carYear,
+                    carPlate: req.body.carPlate,
+                    carOdometer: req.body.carOdometer,
+                    receiveDate: req.body.receiveDate,
+                    warrantyEnd: req.body.warrantyEnd,
+                    subTotal: (partTotal + serviceTotal),
+                    discount: parseFloat(req.body.discount),
+                    total: ((partTotal + serviceTotal) - parseFloat(req.body.discount)),
+                },
+                where= {id: order.id}
+            );
+
+            /// delete related tables
+            await orderDAO.deleteRelatedServicesProductsMechanics(
+                where={id: order.id}
+            );
+
+            /// add related order tables
+            if (req.body.services.length > 0) {
+
+                for (const bodyService of req.body.services) {
+                    /// insert orderServices
+                    await orderDAO.insertOrderService(
+                        data = {
+                            orderId: order.id,
+                            serviceId: bodyService.id,
+                            price: bodyService.price,
+                        }
+                    );
+    
+                    /// insert orderProducts
+                    for (const bodyProduct of bodyService.addedProducts) {
+                        for (const bodyStock of bodyProduct.addedStocks) {
+                            if (parseInt(bodyStock.quantity) == 0) {
+                                continue;
+                            }
+                            await orderDAO.insertOrderProduct(
+                                data = {
+                                    orderId: order.id,
+                                    serviceId: bodyService.id,
+                                    productId: bodyProduct.id,
+                                    stockId: bodyStock.id, 
+                                    price: bodyStock.price,
+                                    quantity: bodyStock.quantity,
+                                }
+                            );
+                        }
+                    }
+    
+                }
+            }
+
+            /// insert orderMechanics
+            if (req.body.mechanics.length > 0) {
+                for (const bodyMechanic of req.body.mechanics) {
+                    await orderDAO.insertOrderMechanic(
+                        data = {
+                            orderId: order.id,
+                            mechanicId: bodyMechanic.id,
+                        }
+                    );
+                }
+            }
+
+            // console.log(`deduct stock`);
+            /// update product stocks 
+            for (const ps of tempProductStocks) {
+                const stocks = await stockDAO.find(
+                    where= {id: ps.stockId}
+                );
+                await stockDAO.update(
+                    data = {
+                        quantity: (parseInt(stocks[0].quantity) - ps.totalQuantity),
+                    },
+                    where = {
+                        id: stocks[0].id,
+                    }
+                )
+            }
+
+            return req.api.status(200).send(updatedOrders[0]);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+    }
+);
 
 
 /**
