@@ -121,6 +121,7 @@ const apiVersion = 'v1';
     validationCheck(),
     async (req, res) => {
         // console.log(req.params.id);
+        // console.log(req.query.withStocks == true);
         try {
 
             let limit = req.query.limit;
@@ -135,7 +136,9 @@ const apiVersion = 'v1';
                     limit: limit, 
                     skip: skip,
                     like: like,
-                    likeSupplier: likeSupplier,
+                    likeSupplier: likeSupplier, 
+                    withStocks: req.query.withStocks == 'true' ? true : undefined, 
+                    withOutStocks: req.query.withStocks == 'false' ? true: undefined, 
                 }
             );
 
@@ -144,6 +147,8 @@ const apiVersion = 'v1';
                 options= {
                     like: like,
                     likeSupplier: likeSupplier,
+                    withStocks: req.query.withStocks == 'true' ? true : undefined, 
+                    withOutStocks: req.query.withStocks == 'false' ? true: undefined, 
                 }
             );
 
@@ -156,7 +161,7 @@ const apiVersion = 'v1';
                 .send(products);
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

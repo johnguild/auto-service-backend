@@ -6,6 +6,11 @@ const Product = require('./product.model');
 const Stock = require('../stock/stock.model');
 
 
+const appendText = (condition, preText, text) => {
+    // console.log(condition, text);
+    return condition ? `${text} ${preText} ` : text; 
+}
+
 
 /**
  * Insert a new instance of Product
@@ -142,6 +147,8 @@ const find = async(
         skip: undefined,
         like: undefined,
         likeSupplier: undefined, 
+        withStocks: undefined,
+        withOutStocks: undefined, 
     }
 ) => {
 
@@ -166,9 +173,7 @@ const find = async(
 
 
     if (options.like !== undefined) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
         whereString += `(
             p.name ILIKE $${values.length + 1} OR 
             p.description ILIKE $${values.length + 1} OR 
@@ -178,17 +183,14 @@ const find = async(
             p.car_part ILIKE $${values.length + 1}
         )
         `;
-
         values.push(`%${options.like}%`);
     }
 
 
     if (options.likeSupplier !== undefined) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
         /// add where to by stock supplier
-        whereString += ` EXISTS (
+        whereString += `EXISTS (
             SELECT 1 FROM ${Stock.tableName} as s 
                 WHERE s.product_id = p.id
                     AND s.supplier ILIKE $${values.length + 1} 
@@ -196,7 +198,33 @@ const find = async(
         )
         `;
 
+
         values.push(`%${options.likeSupplier}%`);
+    }
+
+
+
+    if (options.withStocks !== undefined) {
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
+        /// add where to by stock supplier
+        whereString += `EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id
+                    AND s.quantity > 0 
+        )
+        `;
+    }
+
+
+    if (options.withOutStocks !== undefined) {
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
+        /// add where to by stock supplier
+        whereString += `NOT EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id
+                    AND s.quantity > 0 
+        )
+        `;
     }
 
 
@@ -327,6 +355,8 @@ const findCount = async(
     options = {
         like: undefined,
         likeSupplier: undefined, 
+        withStocks: undefined,
+        withOutStocks: undefined, 
     }
 ) => {
 
@@ -351,9 +381,7 @@ const findCount = async(
 
 
     if (options.like) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
         whereString += `  
             (p.name ILIKE $${values.length + 1} OR 
              p.description ILIKE $${values.length + 1} OR 
@@ -366,9 +394,7 @@ const findCount = async(
     }
 
     if (options.likeSupplier !== undefined) {
-        if (whereString.trim() != '') {
-            whereString += ` AND `;
-        }
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
         /// add where to by stock supplier
         whereString += ` EXISTS (
             SELECT 1 FROM ${Stock.tableName} as s 
@@ -379,6 +405,28 @@ const findCount = async(
         `;
 
         values.push(`%${options.likeSupplier}%`);
+    }
+
+    if (options.withStocks !== undefined) {
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
+        /// add where to by stock supplier
+        whereString += `EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id
+                    AND s.quantity > 0 
+        )
+        `;
+    }
+
+    if (options.withOutStocks !== undefined) {
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
+        /// add where to by stock supplier
+        whereString += `NOT EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id
+                    AND s.quantity > 0 
+        )
+        `;
     }
 
     if (whereString.trim() != '') {

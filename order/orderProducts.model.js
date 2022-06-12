@@ -12,6 +12,7 @@ class OrderProduct {
         price,
         quantity,
         name,
+        description, 
     }) {
         const instance = new this({
             id,
@@ -22,6 +23,7 @@ class OrderProduct {
             price,
             quantity,
             name,
+            description, 
         });
         return instance;
     }
@@ -36,6 +38,7 @@ class OrderProduct {
         price,
         quantity,
         name,
+        description, 
     }) {
         this.id = id;
         this.orderId = orderId;
@@ -45,6 +48,7 @@ class OrderProduct {
         this.price = price;
         this.quantity = quantity;
         this.name = name;
+        this.description = description;
     }
     
 }   

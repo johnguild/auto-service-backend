@@ -8,6 +8,9 @@ const validate = () => {
         query('supplierKeyword')
             .default('')
             .isString().withMessage('keyword must be string'),  
+        query('withStocks')
+            .optional()
+            .isBoolean().withMessage('withStock must be a boolean'),  
         query('page')
             .default(1)
             .isInt().withMessage('page must be an integer'),    

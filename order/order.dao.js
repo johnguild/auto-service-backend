@@ -409,7 +409,8 @@ const find = async(
         LEFT OUTER JOIN (
             SELECT p.order_id, jsonb_build_object('price', p.price, 'service_id', p.service_id, 
                 'product_id', p.product_id, 'stock_id', p.stock_id, 'quantity', p.quantity, 
-                'name', (SELECT pp.name FROM ${Product.tableName} as pp WHERE pp.id = p.product_id )
+                'name', (SELECT pp.name FROM ${Product.tableName} as pp WHERE pp.id = p.product_id ), 
+                'description', (SELECT pp.description FROM ${Product.tableName} as pp WHERE pp.id = p.product_id ) 
                 ) as prdct  
             FROM ${OrderProducts.tableName} as p 
         ) as pr ON pr.order_id = o.id 
@@ -594,7 +595,6 @@ const findMechanicsWithOngoing = async() => {
     return formattedData.map(u => Mechanic.fromDB(u));
 }
 
-
 const findByMechanic = async(
     where = {
         mechanicId,
@@ -656,8 +656,6 @@ const findByMechanic = async(
         res.rows.map(u => Order.fromDB(u)) : [];
 }
 
-
-
 const findCountByMechanic = async(
     where = {
         mechanicId,
@@ -686,8 +684,6 @@ const findCountByMechanic = async(
 
     return res.rows.length > 0 ? res.rows[0].total : 0;
 }
-
-
 
 const findOneWithStock = async(
     where= { id }
@@ -777,6 +773,100 @@ const deleteRelatedServicesProductsMechanics = async(
 
 }
 
+
+const findOrderPayment = async(
+    where = {
+        id,
+    },
+) => {
+
+    if (!where.id) {
+        throw Error('where.id is required');
+    }
+
+    let text = `SELECT *  
+        FROM ${OrderPayments.tableName} 
+        WHERE id = '${where.id}' 
+    `;
+        
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => OrderPayments.fromDB(u)) : [];
+}
+
+const updateOrderPayment = async(
+    data = {
+        type,
+        bank,
+        referenceNumber,
+        accountName, 
+        accountNumber, 
+        chequeNumber, 
+        amount, 
+        dateTime, 
+    }, 
+    where = {
+        id,
+    }
+) => {
+
+    /// collect all variables need to build the query
+    const columns = [], wColumns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in data) {
+        if (data[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(data[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            wColumns.push(snakedAttr);
+            values.push(where[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let valuIndexPos = 0;
+    let updateString = ' ';
+    columns.forEach((col, ind) => {
+        updateString += ` ${col} = ${valueIndexes[ind]} ,`;
+        valuIndexPos = ind;
+    });
+
+    if(updateString.charAt(updateString.length-1) == ',') {
+        updateString = updateString.slice(0, -1);
+    }
+
+    let whereString = ' ';
+    wColumns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'AND ' : ''; 
+        whereString += `${prefix}${col} = ${valueIndexes[valuIndexPos + ind + 1]} `;
+    });
+     
+    const text = `
+        UPDATE ${OrderPayments.tableName} 
+        SET ${updateString} 
+        WHERE ${whereString}
+        RETURNING *;`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => OrderPayments.fromDB(u)) : [];
+}
+
 module.exports = {
     insertOrder,
     insertOrderService,
@@ -793,4 +883,6 @@ module.exports = {
     findCountByMechanic, 
     findOneWithStock, 
     deleteRelatedServicesProductsMechanics,
+    findOrderPayment, 
+    updateOrderPayment, 
 }

@@ -189,7 +189,6 @@ describe('find', () => {
 
     });
 
-
     it('when finding by supplier on records, will succeed', async() => {
         /// create products first
         const productData = [

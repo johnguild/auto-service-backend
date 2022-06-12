@@ -5,6 +5,7 @@ const api = require('../middlewares/api');
 const auth = require('../middlewares/auth');
 const ordersValidation = require('./validations/orders');
 const paymentsValidation = require('./validations/payments');
+const paymentsIdValidation = require('./validations/payments_id');
 const servicesValidation = require('./validations/services');
 const completeValidation = require('./validations/complete');
 const getEditValidation = require('./validations/get_edit');
@@ -408,13 +409,22 @@ const apiVersion = 'v1';
                 data= {
                     orderId: s.id,
                     type: req.body.type,
+                    amount: req.body.amount, 
                     bank: req.body.type == 'Online' 
                         ? req.body.bank
                         : undefined,
                     referenceNumber: req.body.type == 'Online' 
                         ? req.body.referenceNumber
                         : undefined,
-                    amount: req.body.amount,
+                    accountName: req.body.type == 'Cheque' 
+                        ? req.body.accountName
+                        : undefined,
+                    accountNumber: req.body.type == 'Cheque' 
+                        ? req.body.accountNumber
+                        : undefined,
+                    chequeNumber: req.body.type == 'Cheque' 
+                        ? req.body.chequeNumber
+                        : undefined, 
                     dateTime: new Date().toISOString(),
                 }
             )
@@ -429,6 +439,85 @@ const apiVersion = 'v1';
 
         } catch (error) {
             // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+
+
+    }
+);
+
+
+/**
+ * Update Order Payment
+ */
+ router.post(`/${apiVersion}/payments/:id`, 
+    api('Update Order Payment'),
+    auth([User.ROLE_MANAGER]),
+    paymentsIdValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+            /// check if payment exists
+            const payments = await orderDAO.findOrderPayment(where = {
+                id: req.params.id,
+            });
+
+            if (payments.length == 0) {
+                return req.api.status(404).errors([
+                    'Payment Not Found!'
+                ]).send();
+            }
+
+            const orders = await orderDAO.find({
+                id: payments[0].orderId,
+                completed: false,
+            });
+            if (orders.length == 0) {
+                return req.api.status(400).errors([
+                    'Ongoing Order Not Found!'
+                ]).send();
+            }
+
+            await orderDAO.updateOrderPayment(
+                data= {
+                    type: req.body.type,
+                    amount: req.body.amount,
+                    bank: req.body.type == 'Online' 
+                        ? req.body.bank
+                        : null,
+                    referenceNumber: req.body.type == 'Online' 
+                        ? req.body.referenceNumber
+                        : null,
+                    accountName: req.body.type == 'Cheque' 
+                        ? req.body.accountName
+                        : null,
+                    accountNumber: req.body.type == 'Cheque' 
+                        ? req.body.accountNumber
+                        : null,
+                    chequeNumber: req.body.type == 'Cheque' 
+                        ? req.body.chequeNumber
+                        : null,
+                    dateTime: new Date().toISOString(), 
+                },
+                where= {
+                    id: req.params.id, 
+                }
+            )
+
+            // const tmpOrders = await orderDAO.find(where = {
+            //     id: req.params.id,
+            // });
+
+            // console.dir(tmpOrders, {depth: null});
+
+            return req.api.status(200).send();
+
+        } catch (error) {
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

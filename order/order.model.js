@@ -125,6 +125,7 @@ class Order {
                         price: product.price,
                         quantity: product.quantity,
                         name: product.name,
+                        description: product.description, 
                     });
                     this.partsTotal += (parseInt(product.quantity) * parseFloat(product.price));
                     // newTotal += (parseFloat(product.price) * parseFloat(product.quantity));
