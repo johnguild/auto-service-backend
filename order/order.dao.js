@@ -560,6 +560,7 @@ const findMechanicsWithOngoing = async() => {
         LEFT JOIN (
             SELECT o.id, o.car_plate   
             FROM ${Order.tableName} as o 
+            WHERE o.completed = '${false}' 
         ) as oo ON oo.id = om.order_id 
         GROUP BY m.id, oo.car_plate 
     `;
