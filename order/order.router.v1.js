@@ -14,6 +14,7 @@ const getOrdersValidation = require('./validations/get_orders');
 const getOrdersByMechanicValidation = require('./validations/get_orders_by_mechanic');
 const getOrdersTotalValidation = require('./validations/get_orders_total');
 const getOrdersReportValidation = require('./validations/get_orders_report');
+const getOrdersMechanicReportValidation = require('./validations/get_orders_mechanic_report');
 const validationCheck = require('../middlewares/validationCheck');
 const orderDAO = require('./order.dao');
 const serviceDAO = require('../service/service.dao');
@@ -1026,6 +1027,48 @@ router.get(`/${apiVersion}/orders`,
 
 
 /**
+ * Get Order Mechanic Report 
+ */
+ router.get(`/${apiVersion}/orders-mechanic-reports`, 
+    api('Get Order Mechanic Report'),
+    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    getOrdersMechanicReportValidation(),
+    validationCheck(),
+    async (req, res) => {
+        // console.log(req.params.id);
+        try {
+
+
+            // console.log(limit, skip);
+            /// check if acc exists
+            const orders = await orderDAO.findByMultiMechanic(
+                where ={
+                    mechanicIds: req.query.mechanics,
+                    completed: req.query.completed,
+                },
+                opt ={
+                    startDate: req.query.startDate,
+                    endDate: req.query.endDate,
+                },
+            );
+
+            // console.log(total);
+            // console.dir(allOrders, {depth:null});
+
+            return req.api.status(200)
+                .send(orders);
+
+        } catch (error) {
+            // console.log(error);
+            return req.api.status(422).errors([
+                'Failed processing request. Pleast try again!'
+            ]).send();
+        }
+    }
+);
+
+
+/**
  * Get Order by Mechanic
  */
  router.get(`/${apiVersion}/orders-by-mechanic`, 
@@ -1075,7 +1118,7 @@ router.get(`/${apiVersion}/orders`,
 /**
  * Get Order Mechanic Report Data
  */
- router.get(`/${apiVersion}/orders-mechanic-reports`, 
+ router.get(`/${apiVersion}/orders-mechanic-summary`, 
     api('Get Order Mechanic Report Data'),
     auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
     validationCheck(),

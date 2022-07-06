@@ -756,6 +756,76 @@ const findOneWithStock = async(
     return res.rows.length == 1 ? OrderEdit.fromDB(res.rows[0]) : null;
 }
 
+
+const findByMultiMechanic = async(
+    where = {
+        mechanicIds: [],
+        completed, 
+    },
+    opt= {
+        startDate: undefined,
+        endDate: undefined,
+    }
+) => {
+
+    let whereString = ' ';
+
+    if (where.mechanicIds.length > 0) {
+        whereString = `(SELECT COUNT(*)
+            FROM ${OrderMechanics.tableName} om 
+            WHERE om.order_id = o.id 
+                AND om.mechanic_id IN ('${where.mechanicIds.join("','")}') 
+        ) > 0 `;
+    }
+
+    if (where.completed != undefined) {
+        whereString += `${whereString.trim() != '' ? 'AND' : ''} o.completed = ${where.completed} `;
+    }
+
+    let optionString = ' ';
+    if (opt != undefined) {
+        if (opt.startDate != undefined && opt.endDate != undefined) {
+            whereString += `${whereString.trim() != '' ? 'AND' : ''} o.created_at >= '${opt.startDate}' 
+                AND o.created_at <= '${opt.endDate}'`;
+        }
+    }
+    
+    let text = `SELECT o.*, (SELECT json_build_object('id', u.id, 'first_name', u.first_name, 'last_name', u.last_name, 
+                'email', u.email, 'mobile', u.mobile, 'company_name', u.company_name) as customer 
+                FROM ${User.tableName} as u 
+                WHERE u.id = o.customer_id 
+            ) as customer, 
+            CASE WHEN count(ss) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT ss.srv) END as all_services,
+            CASE WHEN count(me) = 0 THEN ARRAY[]::jsonb[] ELSE array_agg(DISTINCT me.mechanic) END as all_mechanics   
+        FROM ${Order.tableName} as o 
+        LEFT OUTER JOIN (
+            SELECT s.order_id, jsonb_build_object('service_id', s.service_id, 
+                'title', (SELECT ss.title FROM ${Service.tableName} as ss WHERE ss.id = s.service_id ),
+                'description', (SELECT ss.description FROM ${Service.tableName} as ss WHERE ss.id = s.service_id ),
+                'price', s.price) as srv  
+            FROM ${OrderServices.tableName} as s 
+        ) as ss ON ss.order_id = o.id 
+        LEFT OUTER JOIN (
+            SELECT m.order_id, jsonb_build_object('id', m.id, 'mechanic_id', m.mechanic_id, 
+                'full_name', (SELECT CONCAT(mm.first_name, ' ', mm.last_name) FROM ${Mechanic.tableName} as mm WHERE mm.id = m.mechanic_id ) 
+                ) as mechanic   
+            FROM ${OrderMechanics.tableName} as m 
+        ) as me ON me.order_id = o.id  
+        ${whereString.trim() != '' ? 'WHERE': ''} ${whereString} 
+        GROUP BY o.id 
+        ORDER BY o.completed ASC, created_at DESC 
+        ${optionString} 
+    `;
+        
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text });
+
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => Order.fromDB(u)) : [];
+}
+
 const deleteRelatedServicesProductsMechanics = async(
     where= { id }
 ) => {
@@ -773,7 +843,6 @@ const deleteRelatedServicesProductsMechanics = async(
     `);
 
 }
-
 
 const findOrderPayment = async(
     where = {
@@ -878,10 +947,11 @@ module.exports = {
     find,
     findCount,
     total,
-    findMechanicsWithOngoing,
+    findMechanicsWithOngoing, 
     updateOrderTotal,
     findByMechanic, 
     findCountByMechanic, 
+    findByMultiMechanic,
     findOneWithStock, 
     deleteRelatedServicesProductsMechanics,
     findOrderPayment, 
