@@ -3,9 +3,8 @@ const bcrypt = require('bcryptjs');
 const tokenator = require('../../utils/tokenator');
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+const migrate = require('../db_migrations/migrate');
 
-const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
-const userMigration1 = require('../../db_migrations/1647518448506_add_company_details_on_users_table');
 const userDAO = require('../../user/user.dao');
 const User = require('../../user/user.model');
 
@@ -30,10 +29,9 @@ let managerToken;
 beforeAll( async () => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await userMigration0.down();
+    await migrate.down();
     // migrate tables
-    await userMigration0.up();
-    await userMigration1.up();
+    await migrate.up();
 });
 
 beforeEach( async () => {
@@ -50,7 +48,7 @@ beforeEach( async () => {
 });
 
 afterAll( async () => {
-    await userMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

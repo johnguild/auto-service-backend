@@ -3,19 +3,7 @@ const bcrypt = require('bcryptjs');
 const tokenator = require('../../utils/tokenator');
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
-
-const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
-const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
-const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
-const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
-const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
-const orderMigration0 = require('../../db_migrations/1642765556944_create_orders_table');
-const orderServicesMigration0 = require('../../db_migrations/1642766434532_create_order_services_table');
-const orderProductsMigration0 = require('../../db_migrations/1642766700669_create_order_products_table');
-const orderPaymentsMigration0 = require('../../db_migrations/1642766906031_create_order_payments_table');
-const orderMechanicsMigration0 = require('../../db_migrations/1647022126173_create_order_mechanics_table');
-const addCompanyDetailsOnUserMigration0 = require('../../db_migrations/1647518448506_add_company_details_on_users_table');
-const orderMigration1 = require('../../db_migrations/1650623506166_update_orders_add_discount');
+const migrate = require('../db_migrations/migrate');
 
 const User = require('../../user/user.model');
 const Service = require('../../service/service.model');
@@ -92,29 +80,9 @@ const products = [];
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await userMigration0.down();
-    await serviceMigration0.down();
-    await productMigration0.down();
-    await stockMigration0.down();
-    await mechanicMigration0.down();
-    await orderMigration0.down();
-    await orderServicesMigration0.down();
-    await orderProductsMigration0.down();
-    await orderPaymentsMigration0.down();
-    await orderMechanicsMigration0.down();
+    await migrate.down();
     // clear db
-    await userMigration0.up();
-    await addCompanyDetailsOnUserMigration0.up();
-    await serviceMigration0.up();
-    await productMigration0.up();
-    await stockMigration0.up();
-    await mechanicMigration0.up();
-    await orderMigration0.up();
-    await orderMigration1.up();
-    await orderServicesMigration0.up();
-    await orderProductsMigration0.up();
-    await orderPaymentsMigration0.up();
-    await orderMechanicsMigration0.up();
+    await migrate.up();
 
 
     /// create users
@@ -188,16 +156,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
-    await userMigration0.down();
-    await serviceMigration0.down();
-    await productMigration0.down();
-    await stockMigration0.down();
-    await mechanicMigration0.down();
-    await orderMigration0.down();
-    await orderServicesMigration0.down();
-    await orderProductsMigration0.down();
-    await orderPaymentsMigration0.down();
-    await orderMechanicsMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

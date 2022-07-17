@@ -1,9 +1,7 @@
-const jwt = require('jsonwebtoken');
-
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
 
-const cashMigration0 = require('../../db_migrations/1646914540177_create_cashes_table');
+const migrate = require('../db_migrations/migrate');
 
 const Cash = require('../../cash/cash.model');
 const cashDAO = require('../../cash/cash.dao');
@@ -17,9 +15,9 @@ const cashData = {
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await cashMigration0.down();
+    await migrate.down();
     // migrate tables
-    await cashMigration0.up();
+    await migrate.up();
 });
 
 beforeEach( async() => {
@@ -27,7 +25,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
-    await cashMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

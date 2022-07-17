@@ -1,9 +1,7 @@
-const jwt = require('jsonwebtoken');
-
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+const migrate = require('../db_migrations/migrate');
 
-const toolMigration0 = require('../../db_migrations/1648809625370_create_tools_tables');
 const Tool = require('../../tool/tool.model');
 const toolDAO = require('../../tool/tool.dao');
 
@@ -20,9 +18,9 @@ const tool1Data = {
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await toolMigration0.down();
+    await migrate.down();
     // migrate tables
-    await toolMigration0.up();
+    await migrate.up();
 });
 
 beforeEach( async() => {
@@ -32,7 +30,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
-    await toolMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

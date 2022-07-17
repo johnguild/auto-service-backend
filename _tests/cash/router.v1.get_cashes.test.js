@@ -3,12 +3,11 @@ const bcrypt = require('bcryptjs');
 const tokenator = require('../../utils/tokenator');
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+const migrate = require('../db_migrations/migrate');
 
-const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
 const userDAO = require('../../user/user.dao');
 const User = require('../../user/user.model');
 
-const cashMigration0 = require('../../db_migrations/1646914540177_create_cashes_table');
 const cashDAO = require('../../cash/cash.dao');
 const Cash = require('../../cash/cash.model');
 
@@ -32,11 +31,9 @@ let managerToken;
 beforeAll( async () => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await userMigration0.down();
-    await cashMigration0.down();
+    await migrate.down();
     // migrate tables
-    await userMigration0.up();
-    await cashMigration0.up();
+    await migrate.up();
 
     const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
     const manager = await userDAO.insert(data = {
@@ -52,8 +49,7 @@ beforeEach( async () => {
 });
 
 afterAll( async () => {
-    await userMigration0.down();
-    await cashMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

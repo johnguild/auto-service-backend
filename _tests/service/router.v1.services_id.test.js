@@ -3,21 +3,17 @@ const bcrypt = require('bcryptjs');
 const tokenator = require('../../utils/tokenator');
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+const migrate = require('../db_migrations/migrate');
 
-const userMigration0 = require('../../db_migrations/1641039467575_create_users_table');
 const userDAO = require('../../user/user.dao');
 const User = require('../../user/user.model');
 
-const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
 const serviceDAO = require('../../service/service.dao');
 const Service = require('../../service/service.model');
 
-const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
-const productMigration1 = require('../../db_migrations/1647514335737_add_car_details_on_products_table');
 const productDAO = require('../../product/product.dao');
 const Product = require('../../product/product.model');
 
-const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
 const Stock = require('../../stock/stock.model');
 
 const { app } = require('../../app');
@@ -41,16 +37,9 @@ let managerToken;
 beforeAll( async () => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await userMigration0.down();
-    await serviceMigration0.down();
-    await productMigration0.down();
-    await stockMigration0.down();
+    await migrate.down();
     // migrate tables
-    await userMigration0.up();
-    await serviceMigration0.up();
-    await productMigration0.up();
-    await productMigration1.up();
-    await stockMigration0.up();
+    await migrate.up();
 
     const managerEncryptedPass = await bcrypt.hash(managerData.password, parseInt(process.env.BCRYPT_SALT));
     const manager = await userDAO.insert(data = {
@@ -72,10 +61,7 @@ beforeEach( async () => {
 });
 
 afterAll( async () => {
-    await userMigration0.down();
-    await serviceMigration0.down();
-    await productMigration0.down();
-    await stockMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

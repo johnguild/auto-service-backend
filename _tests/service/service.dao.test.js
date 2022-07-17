@@ -1,12 +1,6 @@
-const jwt = require('jsonwebtoken');
-
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
-
-const serviceMigration0 = require('../../db_migrations/1641136498591_create_services_table');
-const productMigration0 = require('../../db_migrations/1641297582352_create_products_table');
-const productMigration1 = require('../../db_migrations/1647514335737_add_car_details_on_products_table');
-const stockMigration0 = require('../../db_migrations/1641300048254_create_stocks_table');
+const migrate = require('../db_migrations/migrate');
 
 const Service = require('../../service/service.model');
 const serviceDAO = require('../../service/service.dao');
@@ -29,15 +23,9 @@ const service1Data = {
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await serviceMigration0.down();
-    await productMigration0.down();
-    // await productMigration1.down();
-    await stockMigration0.down();
+    await migrate.down();
     // migrate tables
-    await serviceMigration0.up();
-    await productMigration0.up();
-    await productMigration1.up();
-    await stockMigration0.up();
+    await migrate.up();
 });
 
 beforeEach( async() => {
@@ -49,9 +37,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
-    await serviceMigration0.down();
-    await productMigration0.down();
-    await stockMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

@@ -1,9 +1,7 @@
-const jwt = require('jsonwebtoken');
-
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+const migrate = require('../db_migrations/migrate');
 
-const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
 
 const Mechanic = require('../../mechanic/mechanic.model');
 const mechanicDAO = require('../../mechanic/mechanic.dao');
@@ -21,9 +19,9 @@ const mechanicData = {
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await mechanicMigration0.down();
+    await migrate.down();
     // migrate tables
-    await mechanicMigration0.up();
+    await migrate.up();
 });
 
 beforeEach( async() => {
@@ -31,7 +29,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
-    await mechanicMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

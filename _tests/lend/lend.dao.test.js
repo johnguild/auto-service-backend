@@ -1,17 +1,13 @@
-const jwt = require('jsonwebtoken');
-
 const {getPool, closePool} = require('../../db/postgres');
 const pool = getPool();
+const migrate = require('../db_migrations/migrate');
 
-const lendMigration0 = require('../../db_migrations/1650029430483_create_lends_table');
 const Lend = require('../../lend/lend.model');
 const lendDAO = require('../../lend/lend.dao');
 
-const mechanicMigration0 = require('../../db_migrations/1644727593949_create_mechanics_table');
 const Mechanic = require('../../mechanic/mechanic.model');
 const mechanicDAO = require('../../mechanic/mechanic.dao');
 
-const toolMigration0 = require('../../db_migrations/1648809625370_create_tools_tables');
 const Tool = require('../../tool/tool.model');
 const toolDAO = require('../../tool/tool.dao');
 
@@ -23,13 +19,9 @@ const mechanics = [];
 beforeAll( async() => {
     await new Promise(resolve => setTimeout(() => resolve(), 100));
     // clear db
-    await lendMigration0.down();
-    await mechanicMigration0.down();
-    await toolMigration0.down();
+    await migrate.down();
     // migrate tables
-    await lendMigration0.up();
-    await mechanicMigration0.up();
-    await toolMigration0.up();
+    await migrate.up();
 
     /// create tools
     for (const i of [
@@ -95,9 +87,7 @@ beforeEach( async() => {
 });
 
 afterAll( async() => {
-    await lendMigration0.down();
-    await mechanicMigration0.down();
-    await toolMigration0.down();
+    await migrate.down();
     await closePool();
 });
 

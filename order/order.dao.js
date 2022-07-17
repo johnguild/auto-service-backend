@@ -379,11 +379,11 @@ const find = async(
 
         if (opt.startDate != undefined && opt.endDate != undefined) {
             if (whereString.trim() == '') {
-                whereString = `WHERE o.created_at >= '${opt.startDate}' 
-                    AND o.created_at <= '${opt.endDate}'`;
+                whereString = `WHERE o.created_at::timestamptz >= '${opt.startDate}' 
+                    AND o.created_at::timestamptz <= '${opt.endDate}'`;
             } else {
-                whereString += `AND o.created_at >= '${opt.startDate}' 
-                    AND o.created_at <= '${opt.endDate}'`;
+                whereString += `AND o.created_at::timestamptz >= '${opt.startDate}' 
+                    AND o.created_at::timestamptz <= '${opt.endDate}'`;
             }
         }
     }
@@ -526,8 +526,8 @@ const total = async(
     if (whereString.trim() != '') {
         whereString += 'AND ';
     }
-    whereString += `o.created_at >= '${opt.startDate}' 
-        AND o.created_at <= '${opt.endDate}' `;
+    whereString += `o.created_at::timestamptz >= '${opt.startDate}' 
+        AND o.created_at::timestamptz <= '${opt.endDate}' `;
 
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
@@ -627,11 +627,11 @@ const findByMechanic = async(
 
         if (opt.startDate != undefined && opt.endDate != undefined) {
             if (whereString.trim() == '') {
-                whereString = `WHERE o.created_at >= '${opt.startDate}' 
-                    AND o.created_at <= '${opt.endDate}'`;
+                whereString = `WHERE o.created_at::timestamptz >= '${opt.startDate}' 
+                    AND o.created_at::timestamptz <= '${opt.endDate}'`;
             } else {
-                whereString += `AND o.created_at >= '${opt.startDate}' 
-                    AND o.created_at <= '${opt.endDate}'`;
+                whereString += `AND o.created_at::timestamptz >= '${opt.startDate}' 
+                    AND o.created_at::timestamptz <= '${opt.endDate}'`;
             }
         }
     }
@@ -785,8 +785,8 @@ const findByMultiMechanic = async(
     let optionString = ' ';
     if (opt != undefined) {
         if (opt.startDate != undefined && opt.endDate != undefined) {
-            whereString += `${whereString.trim() != '' ? 'AND' : ''} o.created_at >= '${opt.startDate}' 
-                AND o.created_at <= '${opt.endDate}'`;
+            whereString += `${whereString.trim() != '' ? 'AND' : ''} o.created_at::timestamptz >= '${opt.startDate}' 
+                AND o.created_at::timestamptz <= '${opt.endDate}'`;
         }
     }
     

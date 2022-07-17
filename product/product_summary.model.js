@@ -1,8 +1,6 @@
-const Stock = require('../stock/stock.model');
-const ProductArchive = require('./product_archive.model');
 
 
-class Product {
+class ProductSummary {
 
     static tableName = 'products';
 
@@ -14,8 +12,6 @@ class Product {
         car_type,
         car_year,
         car_part,
-        stocks = [],
-        archives = [],
     }) {
         const instance = new this({
             id,  
@@ -25,12 +21,6 @@ class Product {
             carType: car_type,
             carYear: car_year,
             carPart: car_part,
-            stocks: stocks.length > 0 
-                ? stocks.map((s) => Stock.fromDB(s))
-                : [],
-            archiveRequest: archives.length > 0 
-                ? ProductArchive.fromDB(archives[0])
-                : null, 
         });
         return instance;
     }
@@ -44,8 +34,6 @@ class Product {
         carType,
         carYear,
         carPart,
-        stocks = [],
-        archiveRequest,
     }) {
         this.id = id;
         this.name = name;
@@ -54,15 +42,8 @@ class Product {
         this.carType = carType;
         this.carYear = carYear;
         this.carPart = carPart;
-        this.stocks = stocks;
-        this.totalStocks = 0;
-        this.archiveRequest = archiveRequest;
-
-        stocks.forEach((s) => {
-            this.totalStocks += parseInt(s.quantity);
-        });
     }
     
 }   
 
-module.exports = Product
+module.exports = ProductSummary
