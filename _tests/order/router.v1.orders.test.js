@@ -73,8 +73,7 @@ let managerUser, personnelUser, customerUser;
 let managerToken, personnelToken, customerToken;
 let mechanic;
 
-const services = [];
-const products = [];
+let services = [], products = [];
 
 
 beforeAll( async() => {
@@ -109,7 +108,25 @@ beforeAll( async() => {
     });  
     customerToken = tokenator.generate({ userId: customerUser.id });
 
+    // create mechanic
+    mechanic = await mechanicDAO.insert(mechanicData);
+});
 
+beforeEach( async() => {
+    await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
+    await pool.query(`DELETE FROM ${Order.tableName};`);
+    await pool.query(`DELETE FROM ${OrderServices.tableName};`);
+    await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
+    await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
+    await pool.query(`DELETE FROM ${OrderMechanics.tableName};`);
+    await pool.query(`DELETE FROM ${Service.tableName};`);
+    await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
+
+
+    services = [];
+    products = [];
     /// create services
     for (const service of [
         {
@@ -141,18 +158,73 @@ beforeAll( async() => {
         services.push(serviceInstance);
     }
 
-    // create mechanic
-    mechanic = await mechanicDAO.insert(mechanicData);
-});
+      
+    /// crate products and stocks
+    for (const product of [
+        {
+            name: 'Product 1',
+            description: 'Description 1',
+            carType: 'Car Type',
+            carMake: 'Car Make',
+            carYear: 'Car Year',
+            carPart: 'Car Part',
+        },
+        {
+            name: 'Product 2',
+            description: 'Description 2',
+            carType: 'Car Type 02',
+            carMake: 'Car Make 02',
+            carYear: 'Car Year 02',
+            carPart: 'Car Part 02',
+        },
+        {
+            name: 'Product 3',
+            description: 'Description 3',
+            carType: 'Car Type 03',
+            carMake: 'Car Make 03',
+            carYear: 'Car Year 03',
+            carPart: 'Car Part 03',
+        },
+    ]) {
+        const productInstance = await productDAO.insert(product);
 
-beforeEach( async() => {
-    await pool.query(`DELETE FROM ${Product.tableName};`);
-    await pool.query(`DELETE FROM ${Stock.tableName};`);
-    await pool.query(`DELETE FROM ${Order.tableName};`);
-    await pool.query(`DELETE FROM ${OrderServices.tableName};`);
-    await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
-    await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
-    await pool.query(`DELETE FROM ${OrderMechanics.tableName};`);
+        let stock1Qty = 100;
+        let stock2Qty = 10;
+
+        if (product.name == 'Product 2') {
+            stock1Qty = 200;
+            stock2Qty = 20;
+        } else  if (product.name == 'Product 3') {
+            stock1Qty = 300;
+            stock2Qty = 30;
+        }
+ 
+        const stock = await stockDAO.insert(
+            {
+                productId: productInstance.id,
+                personnelId: personnelUser.id,
+                supplier: 'Test Supplier',
+                quantity: stock1Qty,
+                unitPrice: 120.5,
+                sellingPrice: 155.5,
+            }
+        )
+
+        const stock2 = await stockDAO.insert(
+            {
+                productId: productInstance.id,
+                personnelId: personnelUser.id,
+                supplier: 'Test Supplier 2',
+                quantity: stock2Qty,
+                unitPrice: 99,
+                sellingPrice: 120,
+            }
+        )
+
+        productInstance.stocks = [stock, stock2];
+        products.push(productInstance);
+    }
+
 });
 
 afterAll( async() => {
@@ -271,8 +343,6 @@ it('when with valid data, will succeed', async() => {
 
 });
 
-
-
 it('when with there are no services, will succeed', async() => {
 
 
@@ -305,8 +375,6 @@ it('when with there are no services, will succeed', async() => {
 
 });
 
-
-
 it('when with there are no products in services, will succeed', async() => {
 
     // create services first
@@ -326,7 +394,7 @@ it('when with there are no products in services, will succeed', async() => {
         },{
             id: services[0].id,
             price: services[0].price,
-            products: [{
+            addedProducts: [{
                 id: products[0].id,
                 addedStocks: [{
                     id: products[0].stocks[0].id,
@@ -340,7 +408,7 @@ it('when with there are no products in services, will succeed', async() => {
         warrantyEnd: new Date().toISOString(),
         payment: {
             type: 'Cash',
-            amount: 750
+            amount: 50
         },
         discount: 50, 
     }
@@ -354,6 +422,15 @@ it('when with there are no products in services, will succeed', async() => {
 
     expect(response.status).toBe(200);
     expect(response.body.data).not.toBeNull();
+
+    const orderDetails = await orderDAO.find(where = {id: response.body.data.id});
+    const stocks = await stockDAO.find(where = {});
+    // console.dir(stocks, {depth: null});
+    stocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(99);
+        } 
+    });
 
 });
 

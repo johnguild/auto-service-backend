@@ -13,6 +13,7 @@ const OrderServices = require('../../order/orderServices.model');
 const OrderProducts = require('../../order/orderProducts.model');
 const OrderPayments = require('../../order/orderPayments.model');
 const OrderMechanic = require('../../order/orderMechanics.model');
+const Stock = require('../../stock/stock.model');
 
 const userDAO = require('../../user/user.dao');
 const orderDAO = require('../../order/order.dao');
@@ -64,9 +65,9 @@ const customerData = {
 let managerUser, personnelUser, customerUser;
 let managerToken, personnelToken, customerToken;
 
-const services = [];
-const products = [];
 const mechanics = [];
+let services = [];
+let products = [];
 
 
 beforeAll( async() => {
@@ -102,6 +103,39 @@ beforeAll( async() => {
     customerToken = tokenator.generate({ userId: customerUser.id });
 
 
+    for (const mechanic of [
+        {
+            mobile: '639359372676',
+            firstName: 'John Robin',
+            lastName: 'Perez',
+            birthDay: new Date(Date.now()).toISOString(),
+            gender: 'Male',
+        },
+        {
+            mobile: '639359372677',
+            firstName: 'Test 1',
+            lastName: 'Perez',
+            birthDay: new Date(Date.now()).toISOString(),
+            gender: 'Female',
+        }
+    ]) {
+        const c = await mechanicDAO.insert(mechanic)
+        mechanics.push(c);
+    }
+});
+
+beforeEach( async() => {
+    await pool.query(`DELETE FROM ${Order.tableName};`);
+    await pool.query(`DELETE FROM ${OrderServices.tableName};`);
+    await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
+    await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
+    await pool.query(`DELETE FROM ${OrderMechanic.tableName};`);
+    await pool.query(`DELETE FROM ${Product.tableName};`);
+    await pool.query(`DELETE FROM ${Service.tableName};`);
+    await pool.query(`DELETE FROM ${Stock.tableName};`);
+
+    services = [];
+    products = [];
     /// create services
     for (const service of [
         {
@@ -132,7 +166,8 @@ beforeAll( async() => {
         const serviceInstance = await serviceDAO.insert(service);
         services.push(serviceInstance);
     }
-        
+    
+    /// crate products and stocks
     for (const product of [
         {
             name: 'Product 1',
@@ -161,12 +196,23 @@ beforeAll( async() => {
     ]) {
         const productInstance = await productDAO.insert(product);
 
+        let stock1Qty = 100;
+        let stock2Qty = 10;
+
+        if (product.name == 'Product 2') {
+            stock1Qty = 200;
+            stock2Qty = 20;
+        } else  if (product.name == 'Product 3') {
+            stock1Qty = 300;
+            stock2Qty = 30;
+        }
+ 
         const stock = await stockDAO.insert(
             {
                 productId: productInstance.id,
                 personnelId: personnelUser.id,
                 supplier: 'Test Supplier',
-                quantity: 120,
+                quantity: stock1Qty,
                 unitPrice: 120.5,
                 sellingPrice: 155.5,
             }
@@ -177,7 +223,7 @@ beforeAll( async() => {
                 productId: productInstance.id,
                 personnelId: personnelUser.id,
                 supplier: 'Test Supplier 2',
-                quantity: 80,
+                quantity: stock2Qty,
                 unitPrice: 99,
                 sellingPrice: 120,
             }
@@ -186,34 +232,6 @@ beforeAll( async() => {
         productInstance.stocks = [stock, stock2];
         products.push(productInstance);
     }
-
-    for (const mechanic of [
-        {
-            mobile: '639359372676',
-            firstName: 'John Robin',
-            lastName: 'Perez',
-            birthDay: new Date(Date.now()).toISOString(),
-            gender: 'Male',
-        },
-        {
-            mobile: '639359372677',
-            firstName: 'Test 1',
-            lastName: 'Perez',
-            birthDay: new Date(Date.now()).toISOString(),
-            gender: 'Female',
-        }
-    ]) {
-        const c = await mechanicDAO.insert(mechanic)
-        mechanics.push(c);
-    }
-});
-
-beforeEach( async() => {
-    await pool.query(`DELETE FROM ${Order.tableName};`);
-    await pool.query(`DELETE FROM ${OrderServices.tableName};`);
-    await pool.query(`DELETE FROM ${OrderProducts.tableName};`);
-    await pool.query(`DELETE FROM ${OrderPayments.tableName};`);
-    await pool.query(`DELETE FROM ${OrderMechanic.tableName};`);
 });
 
 afterAll( async() => {
@@ -223,7 +241,6 @@ afterAll( async() => {
 
 
 it('when with valid data, will succeed', async() => {
-
 
     // create services first
     const orderData = {
@@ -295,14 +312,27 @@ it('when with valid data, will succeed', async() => {
 
     const orderDetails = await orderDAO.find(where = {id: o.id});
     const stocks = await stockDAO.find(where = {});
-    // console.dir({ orderDetails, stocks}, {depth: null});
+    // console.dir(stocks, {depth: null});
+    stocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(98);
+        } else if (ss.id == products[0].stocks[1].id) {
+            expect(parseInt(ss.quantity)).toBe(9);
+        } else if (ss.id == products[1].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(199);
+        } else if (ss.id == products[1].stocks[1].id) {
+            expect(parseInt(ss.quantity)).toBe(15);
+        } else if (ss.id == products[2].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(297);
+        }
+    });
 
     
     const getEditResponse = await request(app)
         .get(`/${v}/orders/${o.id}/edit`)
         .set('Authorization', `Bearer ${managerToken}`)
         .send();
-    // console.dir(response.body, { depth: null });
+    // console.dir(getEditResponse.body, { depth: null });
     expect(getEditResponse.status).toBe(200);
     expect(getEditResponse.body.data).not.toBeNull();
 
@@ -313,7 +343,7 @@ it('when with valid data, will succeed', async() => {
     delete editData.orderMechanics;
     delete editData.orderServices;
     // // increasing quantity to fail
-    editData.services[0].addedProducts[0].addedStocks[0].quantity = 20;
+    editData.services[0].addedProducts[0].addedStocks[0].quantity = 3;
     editData.carMake = 'Edited Car Make';
     editData.carType = 'Edited Car Type';
     editData.carPlate = 'Edited Car Plate';
@@ -337,7 +367,253 @@ it('when with valid data, will succeed', async() => {
 
     const newOrderDetails = await orderDAO.find(where = {id: o.id});
     const newStocks = await stockDAO.find(where = {});
-    // console.dir({newOrderDetails, newStocks}, {depth: null});
+    // console.dir(newStocks, {depth: null});
+    newStocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(98);
+        } else if (ss.id == products[0].stocks[1].id) {
+            expect(parseInt(ss.quantity)).toBe(7);
+        } else if (ss.id == products[1].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(199);
+        } else if (ss.id == products[1].stocks[1].id) {
+            expect(parseInt(ss.quantity)).toBe(15);
+        } else if (ss.id == products[2].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(297);
+        }
+    });
 
 });
 
+it('when editing with new product, will succeed', async() => {
+
+    // create services first
+    const orderData = {
+        customerId: customerUser.id,
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        receiveDate: new Date().toISOString(),
+        warrantyEnd: new Date().toISOString(),
+        services: [
+            {
+                id: services[0].id,
+                price: services[0].price,
+                addedProducts: [{
+                    id: products[0].id,
+                    addedStocks: [
+                        {
+                            id: products[0].stocks[0].id,
+                            quantity: 2,
+                            price: products[0].stocks[0].sellingPrice,
+                        },
+                    ],
+                }]
+            }
+        ],
+        mechanics: [...mechanics],
+        payment: {
+            type: 'Cash',
+            amount: 50
+        },
+        discount: 50, 
+    };
+
+    const createOrderResponse = await request(app)
+        .post(`/${v}/orders`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(orderData);
+    // console.dir(createOrderResponse.body, { depth: null });
+    expect(createOrderResponse.status).toBe(200);
+    expect(createOrderResponse.body.data).not.toBeNull();
+    const o = createOrderResponse.body.data;
+
+    const orderDetails = await orderDAO.find(where = {id: o.id});
+    const stocks = await stockDAO.find(where = {});
+    // console.dir(stocks, {depth: null});
+    stocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(98);
+        }
+    });
+
+    
+    const getEditResponse = await request(app)
+        .get(`/${v}/orders/${o.id}/edit`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send();
+    // console.dir(getEditResponse.body, { depth: null });
+    expect(getEditResponse.status).toBe(200);
+    expect(getEditResponse.body.data).not.toBeNull();
+
+
+    const editData = getEditResponse.body.data;
+    editData.services = [...editData.orderServices];
+    editData.mechanics = [...editData.orderMechanics];
+    delete editData.orderMechanics;
+    delete editData.orderServices;
+    // // increasing quantity to fail
+
+    editData.services[0].addedProducts[0].addedStocks.push({
+        id: products[0].stocks[1].id,
+        quantity: 5,
+        price: products[0].stocks[1].sellingPrice,
+    });
+    editData.services[0].addedProducts.push({
+        id: products[1].id,
+        addedStocks: [
+            {
+                id: products[1].stocks[0].id,
+                quantity: 1,
+                price: products[1].stocks[0].sellingPrice,
+            },
+            {
+                id: products[2].stocks[0].id,
+                quantity: 3,
+                price: products[2].stocks[0].sellingPrice,
+            },
+        ],
+    });
+    editData.carMake = 'Edited Car Make';
+    editData.carType = 'Edited Car Type';
+    editData.carPlate = 'Edited Car Plate';
+    editData.carYear = 'Edited Car Year';
+
+    // console.dir(editData, { depth: null });
+
+    const response = await request(app)
+        .post(`/${v}/orders/${o.id}/update`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(editData);
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.carMake).toBe(editData.carMake);
+    expect(response.body.data.carType).toBe(editData.carType);
+    expect(response.body.data.carYear).toBe(editData.carYear);
+    expect(response.body.data.carPlate).toBe(editData.carPlate);
+
+
+    const newOrderDetails = await orderDAO.find(where = {id: o.id});
+    const newStocks = await stockDAO.find(where = {});
+    // console.dir(newStocks, {depth: null});
+    newStocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(98);
+        } else if (ss.id == products[0].stocks[1].id) {
+            expect(parseInt(ss.quantity)).toBe(5);
+        } else if (ss.id == products[1].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(199);
+        } else if (ss.id == products[2].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(297);
+        }
+    });
+
+});
+
+
+it('when editing stock quantity, will succeed', async() => {
+
+    // create services first
+    const orderData = {
+        customerId: customerUser.id,
+        carMake: 'Toyota',
+        carType: '2020 Camry',
+        carYear: '2000',
+        carPlate: '1234-ABCD',
+        carOdometer: '6700',
+        receiveDate: new Date().toISOString(),
+        warrantyEnd: new Date().toISOString(),
+        services: [
+            {
+                id: services[0].id,
+                price: services[0].price,
+                addedProducts: [{
+                    id: products[0].id,
+                    addedStocks: [
+                        {
+                            id: products[0].stocks[0].id,
+                            quantity: 70,
+                            price: products[0].stocks[0].sellingPrice,
+                        },
+                    ],
+                }]
+            }
+        ],
+        mechanics: [...mechanics],
+        payment: {
+            type: 'Cash',
+            amount: 50
+        },
+        discount: 50, 
+    };
+
+    const createOrderResponse = await request(app)
+        .post(`/${v}/orders`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(orderData);
+    // console.dir(createOrderResponse.body, { depth: null });
+    expect(createOrderResponse.status).toBe(200);
+    expect(createOrderResponse.body.data).not.toBeNull();
+    const o = createOrderResponse.body.data;
+
+    const orderDetails = await orderDAO.find(where = {id: o.id});
+    const stocks = await stockDAO.find(where = {});
+    // console.dir(stocks, {depth: null});
+    stocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(30);
+        }
+    });
+
+    
+    const getEditResponse = await request(app)
+        .get(`/${v}/orders/${o.id}/edit`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send();
+    // console.dir(getEditResponse.body, { depth: null });
+    expect(getEditResponse.status).toBe(200);
+    expect(getEditResponse.body.data).not.toBeNull();
+
+
+    const editData = getEditResponse.body.data;
+    editData.services = [...editData.orderServices];
+    editData.mechanics = [...editData.orderMechanics];
+    delete editData.orderMechanics;
+    delete editData.orderServices;
+    // // increasing quantity to fail
+
+    editData.services[0].addedProducts[0].addedStocks[0].quantity = 50;
+    editData.carMake = 'Edited Car Make';
+    editData.carType = 'Edited Car Type';
+    editData.carPlate = 'Edited Car Plate';
+    editData.carYear = 'Edited Car Year';
+
+    // console.dir(editData, { depth: null });
+
+    const response = await request(app)
+        .post(`/${v}/orders/${o.id}/update`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .send(editData);
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.carMake).toBe(editData.carMake);
+    expect(response.body.data.carType).toBe(editData.carType);
+    expect(response.body.data.carYear).toBe(editData.carYear);
+    expect(response.body.data.carPlate).toBe(editData.carPlate);
+
+
+    const newOrderDetails = await orderDAO.find(where = {id: o.id});
+    const newStocks = await stockDAO.find(where = {});
+    // console.dir(newStocks, {depth: null});
+    newStocks.forEach(ss => {
+        if (ss.id == products[0].stocks[0].id) {
+            expect(parseInt(ss.quantity)).toBe(50);
+        }
+    });
+
+});

@@ -40,8 +40,9 @@ const apiVersion = 'v1';
     async (req, res) => {
         try {
 
+            // console.dir(req.body, {depth: null});
             const users = await userDAO.find(
-                where = {
+                {
                     id: req.body.customerId,
                     role: User.ROLE_CUSTOMER,
                 }
@@ -101,8 +102,12 @@ const apiVersion = 'v1';
             /// check if stocks available sufficeint
             for (const ps of tempProductStocks) {
                 const stocks = await stockDAO.find(
-                    where= {id: ps.stockId}
+                    {id: ps.stockId}
                 );
+                // console.dir({
+                //     available: stocks[0].quantity,
+                //     totalQuantity: ps.totalQuantity,
+                // }, {depth: null});
                 if (stocks.length == 0 || parseInt(stocks[0].quantity) < ps.totalQuantity) {
                     return req.api.status(400).errors([
                         'Inventory quantity exceeds stocks available!'
@@ -123,7 +128,7 @@ const apiVersion = 'v1';
             // console.dir({partTotal, serviceTotal}, {depth: null});
 
             const order = await orderDAO.insertOrder(
-                data = {
+                {
                     customerId: users[0].id,
                     carMake: req.body.carMake,
                     carType: req.body.carType,
@@ -144,7 +149,7 @@ const apiVersion = 'v1';
                 for (const bodyService of req.body.services) {
                     /// insert orderServices
                     await orderDAO.insertOrderService(
-                        data = {
+                        {
                             orderId: order.id,
                             serviceId: bodyService.id,
                             price: bodyService.price,
@@ -158,7 +163,7 @@ const apiVersion = 'v1';
                                 continue;
                             }
                             await orderDAO.insertOrderProduct(
-                                data = {
+                                {
                                     orderId: order.id,
                                     serviceId: bodyService.id,
                                     productId: bodyProduct.id,
@@ -176,7 +181,7 @@ const apiVersion = 'v1';
             /// insert orderPayments
             if (req.body.payment) {
                 await orderDAO.insertOrderPayment(
-                    data = {
+                    {
                         orderId: order.id,
                         type: req.body.payment.type,
                         bank: req.body.payment.type == 'Online' 
@@ -204,7 +209,7 @@ const apiVersion = 'v1';
             if (req.body.mechanics.length > 0) {
                 for (const bodyMechanic of req.body.mechanics) {
                     await orderDAO.insertOrderMechanic(
-                        data = {
+                        {
                             orderId: order.id,
                             mechanicId: bodyMechanic.id,
                         }
@@ -213,16 +218,17 @@ const apiVersion = 'v1';
             }
 
             // console.log(`deduct stock`);
+            // console.dir(tempProductStocks, {depth: null});
             /// update product stocks 
             for (const ps of tempProductStocks) {
                 const stocks = await stockDAO.find(
-                    where= {id: ps.stockId}
+                    {id: ps.stockId}
                 );
                 await stockDAO.update(
-                    data = {
+                    {
                         quantity: (parseInt(stocks[0].quantity) - ps.totalQuantity),
                     },
-                    where = {
+                    {
                         id: stocks[0].id,
                     }
                 )
@@ -232,7 +238,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            // console.log(error);
+            console.log(error);
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -628,11 +634,11 @@ const apiVersion = 'v1';
     postUpdateValidation(),
     validationCheck(),
     async (req, res) => {
-        // console.log(req.params.id);
+        // console.dir(req.body, {depth: null});
         try {
 
             /// check if order exists
-            const orders = await orderDAO.find(where = {
+            const orders = await orderDAO.find({
                 id: req.params.id,
                 completed: false, 
             });
@@ -688,7 +694,7 @@ const apiVersion = 'v1';
             /// check if stocks available sufficient
             for (const ps of tempProductStocks) {
                 const stocks = await stockDAO.find(
-                    where= {id: ps.stockId}
+                    {id: ps.stockId}
                 );
                 /// combine the quantity from the original order
                 let originalOrderStock = parseInt(stocks[0].quantity);
@@ -727,13 +733,13 @@ const apiVersion = 'v1';
             for (const os of order.services) {
                 for (const ps of os.products) {
                     const stocks = await stockDAO.find(
-                        where= {id: ps.stockId}
+                        {id: ps.stockId}
                     );
                     await stockDAO.update(
-                        data= {
+                        {
                             quantity: (parseInt(stocks[0].quantity)+parseInt(ps.quantity))
                         },
-                        where= {
+                        {
                             id: ps.stockId
                         }
                     )
@@ -759,7 +765,7 @@ const apiVersion = 'v1';
 
             /// delete related tables
             await orderDAO.deleteRelatedServicesProductsMechanics(
-                where={id: order.id}
+                {id: order.id}
             );
 
             /// add related order tables
@@ -768,7 +774,7 @@ const apiVersion = 'v1';
                 for (const bodyService of req.body.services) {
                     /// insert orderServices
                     await orderDAO.insertOrderService(
-                        data = {
+                        {
                             orderId: order.id,
                             serviceId: bodyService.id,
                             price: bodyService.price,
@@ -782,7 +788,7 @@ const apiVersion = 'v1';
                                 continue;
                             }
                             await orderDAO.insertOrderProduct(
-                                data = {
+                                {
                                     orderId: order.id,
                                     serviceId: bodyService.id,
                                     productId: bodyProduct.id,
@@ -801,7 +807,7 @@ const apiVersion = 'v1';
             if (req.body.mechanics.length > 0) {
                 for (const bodyMechanic of req.body.mechanics) {
                     await orderDAO.insertOrderMechanic(
-                        data = {
+                        {
                             orderId: order.id,
                             mechanicId: bodyMechanic.id,
                         }
@@ -813,13 +819,13 @@ const apiVersion = 'v1';
             /// update product stocks 
             for (const ps of tempProductStocks) {
                 const stocks = await stockDAO.find(
-                    where= {id: ps.stockId}
+                    {id: ps.stockId}
                 );
                 await stockDAO.update(
-                    data = {
+                    {
                         quantity: (parseInt(stocks[0].quantity) - ps.totalQuantity),
                     },
-                    where = {
+                    {
                         id: stocks[0].id,
                     }
                 )
