@@ -3,6 +3,7 @@ const pool = getPool();
 
 const { toSnakeCase } = require('../utils/string');
 const User = require('./user.model');
+const Order = require('../order/order.model');
 
 
 
@@ -139,7 +140,6 @@ const update = async(
         res.rows.map(u => User.fromDB(u)) : [];
 }
 
-
 const find = async(
     where = {
         id,
@@ -223,9 +223,6 @@ const find = async(
 
 }
 
-
-
-
 const findCount = async(
     where = {
         id,
@@ -296,9 +293,190 @@ const findCount = async(
 
 }
 
+const findCustomer = async(
+    where = {
+        id,
+        email,
+        mobile,
+        isDisabled,
+        companyName,
+        companyNumber,
+        companyAddress,
+        companyTin,
+    },
+    options = {
+        limit: undefined,
+        skip: undefined,
+        like: undefined,
+        plateNos: undefined, 
+    }
+) => {
+
+    /// collect all variables need to build the query
+    const columns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(where[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let whereString = ' ';
+
+    /// add specific role
+    whereString += `u.role = '${User.ROLE_CUSTOMER}' `;
+
+    columns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'AND ' : ''; 
+        whereString += `${prefix}u.${col} = ${valueIndexes[ind]} `;
+    });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (u.email ILIKE $${values.length + 1} OR 
+             u.mobile ILIKE $${values.length + 1} OR 
+             u.first_name ILIKE $${values.length + 1} OR 
+             u.last_name ILIKE $${values.length + 1} OR 
+             u.company_name ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
+
+    if (options && options.plateNos) {
+        whereString += `AND EXISTS (
+            SELECT 1 FROM ${Order.tableName} as o   
+                WHERE o.customer_id = u.id
+                    AND o.car_plate ILIKE $${values.length + 1} 
+        ) `;
+        values.push(`%${options.plateNos}%`);
+    }
+
+
+    if (whereString.trim() != '') {
+        whereString = `WHERE ${whereString}`;
+    }
+
+    let optionString = ' ';
+    if (options != undefined) {
+        if (options.limit) {
+            optionString += `LIMIT ${options.limit} `;
+        }
+
+        if (options.skip) {
+            optionString += `OFFSET ${options.skip} `;
+        }
+    }
+     
+    const text = `
+        SELECT * FROM ${User.tableName} as u  
+        ${whereString} 
+        ${optionString};`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    return res.rows.length > 0 ? 
+        res.rows.map(u => User.fromDB(u)) : [];
+
+}
+
+
+const findCustomerCount = async(
+    where = {
+        id,
+        email,
+        mobile,
+        isDisabled,
+        companyName,
+        companyNumber,
+        companyAddress,
+        companyTin,
+    },
+    options = {
+        like: undefined,
+        plateNos: undefined, 
+    }
+) => {
+
+    /// collect all variables need to build the query
+    const columns = [], values = [], valueIndexes = [];
+    let i = 1;
+    for (const attr in where) {
+        if (where[attr] !== undefined) {
+            const snakedAttr = attr.toString().toSnakeCase();
+            columns.push(snakedAttr);
+            values.push(where[attr]);
+            valueIndexes.push(`$${i}`);
+            i++;
+        }
+    }
+
+    let whereString = ' ';
+
+    /// add specific role
+    whereString += `u.role = '${User.ROLE_CUSTOMER}' `;
+
+    columns.forEach((col, ind) => {
+        let prefix = ind > 0 ? 'AND ' : ''; 
+        whereString += `${prefix}u.${col} = ${valueIndexes[ind]} `;
+    });
+
+
+    if (options.like) {
+        if (whereString.trim() != '') {
+            whereString += ` AND `;
+        }
+        whereString += `  
+            (u.email ILIKE $${values.length + 1} OR 
+             u.mobile ILIKE $${values.length + 1} OR 
+             u.first_name ILIKE $${values.length + 1} OR 
+             u.last_name ILIKE $${values.length + 1} OR 
+             u.company_name ILIKE $${values.length + 1})
+        `;
+        values.push(`%${options.like}%`);
+    }
+
+    if (options && options.plateNos) {
+        whereString += `AND EXISTS (
+            SELECT 1 FROM ${Order.tableName} as o   
+                WHERE o.customer_id = u.id
+                    AND o.car_plate ILIKE $${values.length + 1} 
+        ) `;
+        values.push(`%${options.plateNos}%`);
+    }
+
+
+    if (whereString.trim() != '') {
+        whereString = `WHERE ${whereString}`;
+    }
+     
+    const text = `
+        SELECT COUNT(*) as total 
+        FROM ${User.tableName} as u 
+        ${whereString};`;
+
+    // console.log(text);
+    // console.log(values);
+    const res = await pool.query({ text, values });
+
+    return res.rows.length > 0 ? res.rows[0].total : 0;
+
+}
+
 module.exports = {
     insert,
     update,
     find,
-    findCount
+    findCount,
+    findCustomer, 
+    findCustomerCount, 
 }

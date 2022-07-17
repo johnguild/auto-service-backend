@@ -175,19 +175,25 @@ const apiVersion = 'v1';
             let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
             
             /// check if acc exists
-            const users = await userDAO.find(
-                where= {role: User.ROLE_CUSTOMER},
+            const users = await userDAO.findCustomer(
+                where= {},
                 options= {
                     limit: limit, 
                     skip: skip,
-                    like: req.query.keyword ? req.query.keyword : undefined
+                    like: req.query.keyword ? req.query.keyword : undefined,
+                    plateNos: req.query.plateKeyword 
+                        ? req.query.plateKeyword
+                        : undefined,
                 }
             );
 
-            const total = await userDAO.findCount(
-                where= {role: User.ROLE_CUSTOMER},
+            const total = await userDAO.findCustomerCount(
+                where= {},
                 options= {
-                    like: req.query.keyword ? req.query.keyword : undefined
+                    like: req.query.keyword ? req.query.keyword : undefined,
+                    plateNos: req.query.plateKeyword 
+                        ? req.query.plateKeyword
+                        : undefined,
                 }
             );
 
