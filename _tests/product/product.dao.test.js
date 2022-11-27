@@ -528,6 +528,52 @@ describe('findLike', () => {
         expect(err).toBeNull();
 
     });
+  
+    it('when finding with stocks, will succeed', async() => {
+        /// create products first
+        const productData = [
+            {
+                name: 'Product 1',
+                description: 'Description 1',
+            },
+            {
+                name: 'Product 2',
+                description: 'Description 2',
+            },
+            {
+                name: 'Product 3',
+                description: 'Sample 3',
+            },
+        ]
+
+        for (const data of productData) {
+            const c = await productDAO.insert(data);
+            // console.log(c);
+        }
+
+
+        let err = null;
+        try {
+            const search1 = await productDAO.findLike( 
+                where= {
+                    name: '1',
+                    description: '1',
+                },
+                options= {
+                    withStocks: true,
+                } 
+            );
+
+            expect(search1.length).toBe(0);
+
+            // console.log(searchRes[0]);
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+    });
+
 
 });
 

@@ -386,7 +386,11 @@ const apiVersion = 'v1';
                     name: keyword,
                     description: keyword,
                 },
-                options= {limit: limit, skip: 0}
+                options= {
+                    limit: limit, 
+                    skip: 0,
+                    withStocks: req.query.withStocks == 'true' ? true : undefined, 
+                }
             );
 
             // console.log(total);

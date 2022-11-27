@@ -132,3 +132,53 @@ it('when getting using manager account, will succeed', async() => {
 });
 
 
+
+it('when searching withStocks only, will succeed', async() => {
+
+    const productData = [
+        {
+            name: 'Product 1',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 2',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 3',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 4',
+            description: 'Description 1',
+        },
+        {
+            name: 'Product 5',
+            description: 'Description 1',
+        },
+        
+    ];
+
+    for (const p of productData) {
+        await productDAO.insert(p);
+    }
+
+
+    const response = await request(app)
+        .get(`/${v}/products-search`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .query({
+            limit: 30,
+            keyword: '4',
+            withStocks: true,
+        })
+        .send();
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.length).toBe(0);
+
+});
+

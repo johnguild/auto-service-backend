@@ -306,6 +306,7 @@ const findLike = async(
     options = {
         limit: undefined,
         skip: undefined,
+        withStocks: undefined,
     }
 ) => {
 
@@ -329,6 +330,18 @@ const findLike = async(
     });
     whereString = appendText(whereString.trim() != '', ')', whereString);
 
+
+    if (options.withStocks !== undefined) {
+        whereString = appendText(whereString.trim() != '', 'AND', whereString);
+        /// add where to by stock supplier
+        whereString += `EXISTS (
+            SELECT 1 FROM ${Stock.tableName} as s 
+                WHERE s.product_id = p.id
+                    AND s.quantity > 0 
+        )
+        `;
+    }
+
     /// add condition where there is no approved archive request
     whereString = appendText(whereString.trim() != '', 'AND', whereString);
     whereString += `NOT EXISTS (
@@ -340,6 +353,7 @@ const findLike = async(
     if (whereString.trim() != '') {
         whereString = `WHERE ${whereString}`;
     }
+
 
     let optionString = ' ';
     if (options != undefined) {
