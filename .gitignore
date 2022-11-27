@@ -2,3 +2,5 @@ node_modules
 config/app.env
 config/staging.env
 config/prod.env
+system-error.log
+system.log

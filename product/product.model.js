@@ -5,6 +5,11 @@ const ProductArchive = require('./product_archive.model');
 class Product {
 
     static tableName = 'products';
+    
+    static ORDER_BY_NAME_ASC = 'nameAsc';
+    static ORDER_BY_NAME_DESC =  'nameDesc';
+    static ORDER_BY_DESCRIPTION_ASC = 'descriptionAsc';
+    static ORDER_BY_DESCRIPTION_DESC = 'descriptionDesc';
 
     static fromDB({
         id, 

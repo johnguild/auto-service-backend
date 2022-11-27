@@ -151,6 +151,8 @@ const find = async(
         likeSupplier: undefined, 
         withStocks: undefined,
         withOutStocks: undefined, 
+        orderByColumn: undefined,
+        orderByRule: undefined,
     }
 ) => {
 
@@ -243,9 +245,14 @@ const find = async(
         whereString = `WHERE ${whereString}`;
     }
 
+
     let optionString = ' ';
     if (options != undefined) {
 
+        if (options.orderByColumn && options.orderByRule) {
+            optionString += ` ORDER BY ${options.orderByColumn} ${options.orderByRule} `;
+        }
+    
         if (options.limit) {
             optionString += `LIMIT ${options.limit} `;
         }

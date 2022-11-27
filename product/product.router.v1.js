@@ -298,6 +298,29 @@ const apiVersion = 'v1';
             let skip = req.query.page > 1 ? (limit * req.query.page) - limit : 0;
             let like = req.query.keyword ? req.query.keyword : undefined;
             let likeSupplier = req.query.supplierKeyword ? req.query.supplierKeyword : undefined;
+            let orderByColumn, orderByRule;
+            if (req.query.orderBy) {
+                switch(req.query.orderBy) {
+                    case Product.ORDER_BY_NAME_ASC:
+                        orderByColumn = 'name';
+                        orderByRule = 'ASC';
+                    break;
+                    case Product.ORDER_BY_NAME_DESC:
+                        orderByColumn = 'name';
+                        orderByRule = 'DESC';
+
+                    break;
+                    case Product.ORDER_BY_DESCRIPTION_ASC:
+                        orderByColumn = 'description';
+                        orderByRule = 'ASC';
+
+                    break;
+                    case Product.ORDER_BY_DESCRIPTION_DESC:
+                        orderByColumn = 'description';
+                        orderByRule = 'DESC';
+                    break;
+                }
+            }
             
             /// check if acc exists
             const products = await productDAO.find(
@@ -309,6 +332,8 @@ const apiVersion = 'v1';
                     likeSupplier: likeSupplier, 
                     withStocks: req.query.withStocks == 'true' ? true : undefined, 
                     withOutStocks: req.query.withStocks == 'false' ? true: undefined, 
+                    orderByColumn: orderByColumn,
+                    orderByRule: orderByRule,
                 }
             );
 

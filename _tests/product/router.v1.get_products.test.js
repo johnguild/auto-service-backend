@@ -288,3 +288,73 @@ it('when getting with page and limit, will succeed', async() => {
     expect(response.body.data.length).toBe(queryParams.limit);
 
 });
+
+
+it('when getting with incorrect orderBy value, will succeed', async() => {
+
+
+    const response = await request(app)
+        .get(`/${v}/products`)
+        .set('Authorization', `Bearer ${personnelToken}`)
+        .query({
+            orderBy: 'nameWrong'
+        })
+        .send();
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(400);
+
+});
+
+it('when getting with orderBy, will succeed', async() => {
+
+    
+    const productData = [
+        {
+            name: 'Product 1',
+            description: 'Description 5',
+        },
+        {
+            name: 'Product 2',
+            description: 'Description 4',
+        },
+        {
+            name: 'Product 3',
+            description: 'Description 3',
+        },
+        {
+            name: 'Product 4',
+            description: 'Description 2',
+        },
+        {
+            name: 'Product 5',
+            description: 'Description 1',
+        },
+        
+        
+    ];
+
+    for (const p of productData) {
+        await productDAO.insert(p);
+    }
+
+    const queryParams = {
+        orderBy: Product.ORDER_BY_DESCRIPTION_ASC,
+        limit: 2,
+    }
+
+    const response = await request(app)
+        .get(`/${v}/products`)
+        .set('Authorization', `Bearer ${managerToken}`)
+        .query(queryParams)
+        .send();
+
+    // console.dir(response.body, { depth: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data).not.toBeNull();
+    expect(response.body.data.length).toBe(queryParams.limit);
+    expect(response.body.data[0].name).toBe(productData[4].name);
+
+});

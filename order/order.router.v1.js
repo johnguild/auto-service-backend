@@ -24,6 +24,7 @@ const userDAO = require('../user/user.dao');
 const Order = require('./order.model');
 const User = require('../user/user.model');
 const { options } = require('pg/lib/defaults');
+const Logger = require('../utils/Logger');
 
 const router = new express.Router();
 const apiVersion = 'v1';
@@ -238,7 +239,7 @@ const apiVersion = 'v1';
                 .send(order);
 
         } catch (error) {
-            console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -375,6 +376,7 @@ const apiVersion = 'v1';
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -446,6 +448,7 @@ const apiVersion = 'v1';
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -524,7 +527,8 @@ const apiVersion = 'v1';
             return req.api.status(200).send();
 
         } catch (error) {
-            console.log(error);
+            // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -615,6 +619,7 @@ const apiVersion = 'v1';
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -835,6 +840,7 @@ const apiVersion = 'v1';
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -887,6 +893,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -981,6 +988,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -1024,6 +1032,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -1066,6 +1075,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -1114,6 +1124,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -1144,6 +1155,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();
@@ -1186,6 +1198,7 @@ router.get(`/${apiVersion}/orders`,
 
         } catch (error) {
             // console.log(error);
+            Logger.custom.log('error', error.toString());
             return req.api.status(422).errors([
                 'Failed processing request. Pleast try again!'
             ]).send();

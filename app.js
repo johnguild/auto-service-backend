@@ -1,4 +1,5 @@
 const express = require('express');
+var bodyParser = require('body-parser');
 const cors = require('cors');
 const UserRouter = require('./user/user.router.v1');
 const PersonnelRouter = require('./user/personnel.router.v1');
@@ -17,7 +18,9 @@ const LendRouter = require('./lend/lend.router.v1');
 const app = express();
 
 app.use(cors({credentials: true, origin: true, exposedHeaders: '*'}));
-app.use(express.json({limit: '50mb'}));
+// app.use(express.json({limit: '50mb'}));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(UserRouter);
 app.use(PersonnelRouter);
 app.use(ClerkRouter);

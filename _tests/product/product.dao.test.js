@@ -387,6 +387,60 @@ describe('find', () => {
         expect(err).toBeNull();
 
     });
+
+
+    it('when finding with order, will succeed', async() => {
+        /// create products first
+        const productData = [
+            {
+                name: 'Product 1',
+                description: 'Description 1',
+            },
+            {
+                name: 'Product 2',
+                description: 'Description 2',
+            },
+            {
+                name: 'Product 3',
+                description: 'Description 3',
+            },
+            {
+                name: 'Product 4',
+                description: 'Description 4',
+            },
+        ]
+
+        for (const data of productData) {
+            const c = await productDAO.insert(data);
+            // console.log(c);
+        }
+
+
+        let err = null;
+        try {
+            const products = await productDAO.find( 
+                where= {},
+                options= {
+                    limit: 2,
+                    skip: 1,
+                    orderByColumn: 'name',
+                    orderByRule: 'desc'
+                } 
+            );
+
+            expect(products.length).toBe(2);
+            expect(products[0].name).toBe(productData[2].name);
+
+            // console.log(searchRes[0]);
+        } catch (error) {
+            err = error;
+        }
+        expect(err).toBeNull();
+
+
+
+
+    });
 });
 
 describe('findLike', () => {

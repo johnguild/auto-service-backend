@@ -757,7 +757,7 @@ describe('find', () => {
     it('when finding using opt.startDate and opt.endDate, will succeed', async() => {
 
         /// create a first one (excluded)
-        await orderDAO.insertOrder({
+        const tmp0 = await orderDAO.insertOrder({
             customerId: customerUser.id,
             carMake: 'Toyota',
             carType: 'Camry',
@@ -767,8 +767,10 @@ describe('find', () => {
             total: 9000,
         });
 
-        await new Promise(resolve => setTimeout(() => resolve(), 10));
+        // console.log(tmp0.createdAt);
+        await new Promise(resolve => setTimeout(resolve, 333));
         const preDate = new Date();
+
         /// create products first
         const orderData = [
             {
@@ -787,7 +789,7 @@ describe('find', () => {
                 carYear: 'Black',
                 carPlate: '1234-ABCD',
                 carOdometer: '6700',
-                total: 6000,
+                total: 7000,
             },
             {
                 customerId: personnelUser.id,
@@ -796,14 +798,15 @@ describe('find', () => {
                 carYear: 'White',
                 carPlate: '1234-ABCD',
                 carOdometer: '6700',
-                total: 6000,
+                total: 8000,
             },
         ]
         
-        // console.log(preDate.toISOString())
+        // console.log(`preDate: ${preDate.toISOString()}`)
         let index = 0;
         for (const data of orderData) {
             const o = await orderDAO.insertOrder(data);
+            // console.log(o.createdAt);
 
             if (index == 0 || index == 2) {
                 await orderDAO.insertOrderService(
@@ -832,10 +835,12 @@ describe('find', () => {
             index++;
             // console.log(index);
         }
+        await new Promise(resolve => setTimeout(resolve, 333));
+        const postDate = new Date();
 
-        await new Promise(resolve => setTimeout(() => resolve(), 10));
         let orders;
         let err = null;
+        // console.log(`postDate: ${postDate.toISOString()}`)
         try {
             orders = await orderDAO.find( 
                 where= {
@@ -843,7 +848,7 @@ describe('find', () => {
                 },
                 opt= {
                     startDate: preDate.toISOString(),
-                    endDate: new Date().toISOString(),
+                    endDate: postDate.toISOString(),
                 } 
             );
 
@@ -866,6 +871,7 @@ describe('total', () => {
     it('when finding total by customerId, will succeed', async() => {
 
         const preDate = new Date();
+        await new Promise(resolve => setTimeout(() => resolve(), 333));
         /// create products first
         const orderData = [
             {
@@ -896,8 +902,8 @@ describe('total', () => {
                 total: 6000,
             },
         ]
-        
-        await new Promise(resolve => setTimeout(() => resolve(), 10));
+    
+
         let index = 0;
         for (const data of orderData) {
             const o = await orderDAO.insertOrder(data);
@@ -930,7 +936,8 @@ describe('total', () => {
             // console.log(index);
         }
 
-        await new Promise(resolve => setTimeout(() => resolve(), 10));
+        await new Promise(resolve => setTimeout(() => resolve(), 333));
+        const postDate = new Date();
         let ordersTotal;
         let err = null;
         try {
@@ -940,7 +947,7 @@ describe('total', () => {
                 },
                 opt= {
                     startDate: preDate.toISOString(),
-                    endDate: new Date().toISOString(),
+                    endDate: postDate.toISOString(),
                 } 
             );
 
