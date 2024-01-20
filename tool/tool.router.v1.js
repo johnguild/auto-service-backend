@@ -118,7 +118,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/tools`, 
     api('Get Tool Listing'),
-    auth([User.ROLE_CLERK]),
+    auth([User.ROLE_CLERK, User.ROLE_AUDITOR]),
     getToolsValidation(),
     validationCheck(),
     async (req, res) => {

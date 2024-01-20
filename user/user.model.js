@@ -6,6 +6,7 @@ class User {
     static ROLE_PERSONNEL = 'personnel';// inventory person
     static ROLE_CLERK = 'clerk';// tools person
     static ROLE_CUSTOMER = 'customer';
+    static ROLE_AUDITOR = 'auditor';
 
     static fromDB({
         id, 

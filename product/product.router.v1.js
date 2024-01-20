@@ -286,7 +286,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/products`, 
     api('Get Product Listing'),
-    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    auth([User.ROLE_PERSONNEL, User.ROLE_AUDITOR, User.ROLE_MANAGER]),
     getProductsValidation(),
     validationCheck(),
     async (req, res) => {
@@ -370,7 +370,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/products-search`, 
     api('Get Product Search'),
-    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    auth([User.ROLE_PERSONNEL, User.ROLE_AUDITOR, User.ROLE_MANAGER]),
     getSearchProductsValidation(),
     validationCheck(),
     async (req, res) => {
@@ -413,7 +413,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/products-archives`, 
     api('Get Product Archive Listing'),
-    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    auth([User.ROLE_PERSONNEL, User.ROLE_AUDITOR, User.ROLE_MANAGER]),
     getProductsArchivesValidation(),
     validationCheck(),
     async (req, res) => {

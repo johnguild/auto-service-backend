@@ -122,7 +122,7 @@ const apiVersion = 'v1';
  */
  router.get(`/${apiVersion}/stocks`, 
     api('Get Stock Listing'),
-    auth([User.ROLE_PERSONNEL, User.ROLE_MANAGER]),
+    auth([User.ROLE_PERSONNEL, User.ROLE_AUDITOR, User.ROLE_MANAGER]),
     getStocksValidation(),
     validationCheck(),
     async (req, res) => {
